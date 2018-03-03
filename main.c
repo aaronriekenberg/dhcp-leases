@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
   dhcpdLeaseTree = readDhcpdLeasesFile();
   ouiAndOrganizationTree = readOuiFile();
 
-  printf("%-18s%-28s%-20s%-24s%s\n", "IP", "End Time", "MAC", "Hostname", "Organization");
+  printf("\n%-18s%-28s%-20s%-24s%s\n", "IP", "End Time", "MAC", "Hostname", "Organization");
   printf("====================================================================================================================\n");
 
   RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
