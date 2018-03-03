@@ -347,6 +347,7 @@ int main(int argc, char** argv) {
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* dhcpdLease;
   struct OuiAndOrganizationTree* ouiAndOrganizationTree;
+  size_t numLeases = 0;
 
   dhcpdLeaseTree = readDhcpdLeasesFile();
   ouiAndOrganizationTree = readOuiFile();
@@ -358,6 +359,8 @@ int main(int argc, char** argv) {
     char buffer[80];
     struct tm* tm;
     const char* organization = NULL;
+
+    ++numLeases;
 
     printf("%-18s", dhcpdLease->ip);    
 
@@ -398,9 +401,10 @@ int main(int argc, char** argv) {
     } else {
       printf("%s", "NA");
     }
-
     printf("\n");
   }
+
+  printf("\n%zu IPs in use\n", numLeases);
 
   return 0;
 }
