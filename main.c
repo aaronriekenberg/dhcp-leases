@@ -68,6 +68,31 @@ RB_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease)
 
 typedef uint32_t Oui;
 
+struct OuiInfo {
+  Oui oui;
+  RB_ENTRY(OuiInfo) entry;
+};
+
+static void freeOuiInfo(struct OuiInfo* ouiInfo) {
+  free(ouiInfo);
+}
+
+static int compareOuiInfo(
+  const struct OuiInfo* o1,
+  const struct OuiInfo* o2) {
+  if (o1->oui < o2->oui) {
+    return -1;
+  } else if (o1->oui == o2->oui) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+RB_HEAD(OuiInfoTree, OuiInfo);
+
+RB_GENERATE(OuiInfoTree, OuiInfo, entry, compareOuiInfo)
+
 struct OuiAndOrganization {
   Oui oui;
   char* organization;
@@ -140,7 +165,7 @@ static const char* errnoToString(const int errnoToTranslate)
   return errorString;
 }
 
-struct OuiAndOrganizationTree* readOuiFile() {
+struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
   const char* fileName = "/home/aaron/oui.txt";
   FILE* ouiFile;
   char* line = NULL;
@@ -163,7 +188,7 @@ struct OuiAndOrganizationTree* readOuiFile() {
 
   while ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1) {
     char ouiString[7];
-    Oui oui;
+    struct OuiInfo ouiInfoEntry;
 
     /* kill newline */
     if (lineLength > 0) {
@@ -179,15 +204,30 @@ struct OuiAndOrganizationTree* readOuiFile() {
     memcpy(ouiString, line, 6);
     ouiString[6] = '\0';
 
-    if (sscanf(ouiString, "%x", &oui) == 1) {
-      struct OuiAndOrganization* previousEntry;
-      struct OuiAndOrganization* ouiAndOrganization = checkedMalloc(sizeof(struct OuiAndOrganization));
-      ouiAndOrganization->oui = oui;
-      ouiAndOrganization->organization = strdup(&(line[22]));
-      previousEntry = RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization);
-      if (previousEntry != NULL) {
-        freeOuiAndOrganization(ouiAndOrganization);
+    if (sscanf(ouiString, "%x", &(ouiInfoEntry.oui)) == 1) {
+      struct OuiInfo* existingOuiInfo = RB_FIND(OuiInfoTree, ouiInfoTree, &ouiInfoEntry);
+      if (existingOuiInfo != NULL) {
+        struct OuiAndOrganization* previousOuiAndOrganization;
+        struct OuiAndOrganization* ouiAndOrganization;
+
+        RB_REMOVE(OuiInfoTree, ouiInfoTree, existingOuiInfo);
+        freeOuiInfo(existingOuiInfo); 
+        existingOuiInfo = NULL;
+
+        ouiAndOrganization = checkedMalloc(sizeof(struct OuiAndOrganization));
+        ouiAndOrganization->oui = ouiInfoEntry.oui;
+        ouiAndOrganization->organization = strdup(&(line[22]));
+
+        previousOuiAndOrganization = RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization);
+        if (previousOuiAndOrganization != NULL) {
+          freeOuiAndOrganization(previousOuiAndOrganization);
+          previousOuiAndOrganization = NULL;
+        }
       }
+    }
+
+    if (RB_EMPTY(ouiInfoTree)) {
+      break;
     }
   }
 
@@ -353,14 +393,44 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   return dhcpdLeaseTree;
 }
 
+struct OuiInfoTree* generateOuiInfoTree(struct DhcpdLeaseTree* dhcpdLeaseTree) {
+  struct OuiInfoTree* ouiInfoTree;
+  struct DhcpdLease* dhcpdLease;
+
+  ouiInfoTree = checkedMalloc(sizeof(struct OuiInfoTree));
+  RB_INIT(ouiInfoTree);
+
+  RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
+    if (dhcpdLease->mac != NULL) {
+      uint8_t byte1, byte2, byte3;
+      if (sscanf(dhcpdLease->mac, "%hhx:%hhx:%hhx", &byte1, &byte2, &byte3) == 3) {
+        struct OuiInfo* ouiInfo;
+        struct OuiInfo* previousEntry;
+        ouiInfo = checkedMalloc(sizeof(struct OuiInfo));
+        ouiInfo->oui = (byte1 << 16) | (byte2 << 8) | byte3;
+        previousEntry = RB_INSERT(OuiInfoTree, ouiInfoTree, ouiInfo);
+        if (previousEntry != NULL) {
+          freeOuiInfo(ouiInfo);
+        }
+      }
+    }
+  }
+
+  return ouiInfoTree;
+}
+
 int main(int argc, char** argv) {
   struct DhcpdLeaseTree* dhcpdLeaseTree;
-  struct DhcpdLease* dhcpdLease;
+  struct OuiInfoTree* ouiInfoTree;
   struct OuiAndOrganizationTree* ouiAndOrganizationTree;
+  struct DhcpdLease* dhcpdLease;
   size_t numLeases = 0;
 
   dhcpdLeaseTree = readDhcpdLeasesFile();
-  ouiAndOrganizationTree = readOuiFile();
+
+  ouiInfoTree = generateOuiInfoTree(dhcpdLeaseTree);
+
+  ouiAndOrganizationTree = readOuiFile(ouiInfoTree);
 
   printf("\n%-18s%-28s%-20s%-24s%s\n", "IP", "End Time", "MAC", "Hostname", "Organization");
   printf("====================================================================================================================\n");
