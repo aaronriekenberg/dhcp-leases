@@ -188,24 +188,22 @@ struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
 
   while ((!RB_EMPTY(ouiInfoTree)) &&
          ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1)) {
-    char ouiString[7];
     struct OuiInfo ouiInfoEntry;
 
     /* kill newline */
     if (lineLength > 0) {
       line[lineLength - 1] = '\0';
+      lineLength -= 1;
     }
 
-    if ((lineLength < 24) ||
+    if ((lineLength < 23) ||
         (line[0] == '\t') ||
         (line[2] == '-')) {
       continue;
     }
 
-    memcpy(ouiString, line, 6);
-    ouiString[6] = '\0';
-
-    if (sscanf(ouiString, "%x", &(ouiInfoEntry.oui)) == 1) {
+    line[6] = '\0';
+    if (sscanf(line, "%x", &(ouiInfoEntry.oui)) == 1) {
       struct OuiInfo* existingOuiInfo = RB_FIND(OuiInfoTree, ouiInfoTree, &ouiInfoEntry);
       if (existingOuiInfo != NULL) {
         struct OuiAndOrganization* ouiAndOrganization;
@@ -276,6 +274,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
     /* kill newline */
     if (lineLength > 0) {
       line[lineLength - 1] = '\0';
+      lineLength -= 1;
     }
 
     for (token = tokens; token < &(tokens[MAX_TOKENS - 1]) && 
