@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  printf("dbFileName = %s db = %p\n", dbFileName, db);
+  printf("dbFileName = %s", dbFileName);
 
   printf("\n%-18s%-28s%-20s%-24s%s\n", "IP", "End Time", "MAC", "Hostname", "Organization");
   printf("====================================================================================================================\n");
