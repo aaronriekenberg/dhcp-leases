@@ -183,7 +183,6 @@ struct OuiAndOrganizationTree* readOuiFile() {
   if ((error = ferror(ouiFile)) != 0) {
     printf("error reading oui file %s errno %d: %s", 
            fileName, error, errnoToString(error));
-    return ouiAndOrganizationTree;
   }
 
   free(line);
@@ -208,8 +207,6 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   char* line = NULL;
   size_t lineCapacity = 0;
   ssize_t lineLength;
-  char** token;
-  char* tokens[MAX_TOKENS];
   int error;
 
   dhcpdLeaseTree = checkedMalloc(sizeof(struct DhcpdLeaseTree));
@@ -226,6 +223,8 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
   while ((lineLength = getline(&line, &lineCapacity, dhcpdLeasesFile)) != -1) {
     size_t i;
+    char** token;
+    char* tokens[MAX_TOKENS];
     size_t numTokens = 0;
 
     /* kill newline */
@@ -327,17 +326,17 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
            fileName, error, errnoToString(error));
   }
 
-  if (currentDhcpdLease != NULL) {
-    freeDhcpdLease(currentDhcpdLease);
-    currentDhcpdLease = NULL;
-  }
-
   free(line);
   line = NULL;
 
   if ((error = fclose(dhcpdLeasesFile)) != 0) {
     printf("error closing dhcpd leases file %s errno %d: %s", 
            fileName, error, errnoToString(error));
+  }
+
+  if (currentDhcpdLease != NULL) {
+    freeDhcpdLease(currentDhcpdLease);
+    currentDhcpdLease = NULL;
   }
 
   return dhcpdLeaseTree;
