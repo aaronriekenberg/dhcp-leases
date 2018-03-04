@@ -186,7 +186,8 @@ struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
     return ouiAndOrganizationTree;
   }
 
-  while ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1) {
+  while ((!RB_EMPTY(ouiInfoTree)) &&
+         ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1)) {
     char ouiString[7];
     struct OuiInfo ouiInfoEntry;
 
@@ -222,10 +223,6 @@ struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
           ouiAndOrganization = NULL;
         }
       }
-    }
-
-    if (RB_EMPTY(ouiInfoTree)) {
-      break;
     }
   }
 
