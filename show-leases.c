@@ -1,9 +1,12 @@
+#include <db.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/queue.h>
 #include <sys/tree.h>
+#include <sys/types.h>
 #include <time.h>
 
 struct DhcpdLease {
@@ -68,60 +71,6 @@ RB_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease)
 
 typedef uint32_t Oui;
 
-struct OuiInfo {
-  Oui oui;
-  RB_ENTRY(OuiInfo) entry;
-};
-
-static void freeOuiInfo(struct OuiInfo* ouiInfo) {
-  free(ouiInfo);
-}
-
-static int compareOuiInfo(
-  const struct OuiInfo* o1,
-  const struct OuiInfo* o2) {
-  if (o1->oui < o2->oui) {
-    return -1;
-  } else if (o1->oui == o2->oui) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-RB_HEAD(OuiInfoTree, OuiInfo);
-
-RB_GENERATE(OuiInfoTree, OuiInfo, entry, compareOuiInfo)
-
-struct OuiAndOrganization {
-  Oui oui;
-  char* organization;
-  RB_ENTRY(OuiAndOrganization) entry;
-};
-
-static void freeOuiAndOrganization(struct OuiAndOrganization* ouiAndOrganization) {
-  if (ouiAndOrganization != NULL) {
-    free(ouiAndOrganization->organization);
-    free(ouiAndOrganization);
-  }
-}
-
-static int compareOuiAndOrganization(
-  const struct OuiAndOrganization* o1,
-  const struct OuiAndOrganization* o2) {
-  if (o1->oui < o2->oui) {
-    return -1;
-  } else if (o1->oui == o2->oui) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-RB_HEAD(OuiAndOrganizationTree, OuiAndOrganization);
-
-RB_GENERATE(OuiAndOrganizationTree, OuiAndOrganization, entry, compareOuiAndOrganization)
-
 static void* checkedCallocOne(
   const size_t size)
 {
@@ -163,81 +112,6 @@ static const char* errnoToString(const int errnoToTranslate)
 
   errno = previousErrno;
   return errorString;
-}
-
-struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
-  const char* fileName = "/home/aaron/oui.txt";
-  FILE* ouiFile;
-  char* line = NULL;
-  size_t lineCapacity = 0;
-  ssize_t lineLength;
-  struct OuiAndOrganizationTree* ouiAndOrganizationTree;
-  int error;
-
-  ouiAndOrganizationTree = checkedMalloc(sizeof(struct OuiAndOrganizationTree));
-  RB_INIT(ouiAndOrganizationTree);
-
-  printf("reading %s\n", fileName);
-  ouiFile = fopen(fileName, "r");
-
-  if (ouiFile == NULL) {
-    printf("failed to open %s errno %d: %s", 
-           fileName, errno, errnoToString(errno));
-    return ouiAndOrganizationTree;
-  }
-
-  while ((!RB_EMPTY(ouiInfoTree)) &&
-         ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1)) {
-    struct OuiInfo ouiInfoEntry;
-
-    /* kill newline */
-    if (lineLength > 0) {
-      line[lineLength - 1] = '\0';
-      lineLength -= 1;
-    }
-
-    if ((lineLength < 23) ||
-        (line[0] == '\t') ||
-        (line[2] == '-')) {
-      continue;
-    }
-
-    line[6] = '\0';
-    if (sscanf(line, "%x", &(ouiInfoEntry.oui)) == 1) {
-      struct OuiInfo* existingOuiInfo = RB_FIND(OuiInfoTree, ouiInfoTree, &ouiInfoEntry);
-      if (existingOuiInfo != NULL) {
-        struct OuiAndOrganization* ouiAndOrganization;
-
-        RB_REMOVE(OuiInfoTree, ouiInfoTree, existingOuiInfo);
-        freeOuiInfo(existingOuiInfo); 
-        existingOuiInfo = NULL;
-
-        ouiAndOrganization = checkedMalloc(sizeof(struct OuiAndOrganization));
-        ouiAndOrganization->oui = ouiInfoEntry.oui;
-        ouiAndOrganization->organization = strdup(&(line[22]));
-
-        if (RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization) != NULL) {
-          freeOuiAndOrganization(ouiAndOrganization);
-          ouiAndOrganization = NULL;
-        }
-      }
-    }
-  }
-
-  if ((error = ferror(ouiFile)) != 0) {
-    printf("error reading oui file %s errno %d: %s", 
-           fileName, error, errnoToString(error));
-  }
-
-  free(line);
-  line = NULL;
-
-  if ((error = fclose(ouiFile)) != 0) {
-    printf("error closing oui file %s errno %d: %s", 
-           fileName, error, errnoToString(error));
-  }
-
-  return ouiAndOrganizationTree;
 }
 
 static const size_t MAX_TOKENS = 5;
@@ -388,41 +262,25 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   return dhcpdLeaseTree;
 }
 
-struct OuiInfoTree* generateOuiInfoTree(struct DhcpdLeaseTree* dhcpdLeaseTree) {
-  struct OuiInfoTree* ouiInfoTree;
-  struct DhcpdLease* dhcpdLease;
-
-  ouiInfoTree = checkedMalloc(sizeof(struct OuiInfoTree));
-  RB_INIT(ouiInfoTree);
-
-  RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
-    if (dhcpdLease->mac != NULL) {
-      uint8_t byte1, byte2, byte3;
-      if (sscanf(dhcpdLease->mac, "%hhx:%hhx:%hhx", &byte1, &byte2, &byte3) == 3) {
-        struct OuiInfo* ouiInfo = checkedMalloc(sizeof(struct OuiInfo));
-        ouiInfo->oui = (byte1 << 16) | (byte2 << 8) | byte3;
-        if (RB_INSERT(OuiInfoTree, ouiInfoTree, ouiInfo) != NULL) {
-          freeOuiInfo(ouiInfo);
-        }
-      }
-    }
-  }
-
-  return ouiInfoTree;
-}
-
 int main(int argc, char** argv) {
+  const char* dbFileName = "oui.db";
   struct DhcpdLeaseTree* dhcpdLeaseTree;
-  struct OuiInfoTree* ouiInfoTree;
-  struct OuiAndOrganizationTree* ouiAndOrganizationTree;
   struct DhcpdLease* dhcpdLease;
   size_t numLeases = 0;
+  DB* db;
+  BTREEINFO btreeinfo;
+  DBT key, value;
 
   dhcpdLeaseTree = readDhcpdLeasesFile();
 
-  ouiInfoTree = generateOuiInfoTree(dhcpdLeaseTree);
+  memset(&btreeinfo, 0, sizeof(btreeinfo));
+  db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, &btreeinfo);
+  if (db == NULL) {
+    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, errnoToString(errno));
+    return 1;
+  }
 
-  ouiAndOrganizationTree = readOuiFile(ouiInfoTree);
+  printf("dbFileName = %s db = %p\n", dbFileName, db);
 
   printf("\n%-18s%-28s%-20s%-24s%s\n", "IP", "End Time", "MAC", "Hostname", "Organization");
   printf("====================================================================================================================\n");
@@ -459,12 +317,12 @@ int main(int argc, char** argv) {
     if (dhcpdLease->mac != NULL) {
       uint8_t byte1, byte2, byte3;
       if (sscanf(dhcpdLease->mac, "%hhx:%hhx:%hhx", &byte1, &byte2, &byte3) == 3) {
-        struct OuiAndOrganization entry;
-        struct OuiAndOrganization* pEntry;
-        entry.oui = (byte1 << 16) | (byte2 << 8) | byte3;
-        pEntry = RB_FIND(OuiAndOrganizationTree, ouiAndOrganizationTree, &entry);
-        if (pEntry != NULL) {
-          organization = pEntry->organization;
+        Oui oui = (byte1 << 16) | (byte2 << 8) | byte3;
+        key.data = &oui;
+        key.size = sizeof(oui);
+        memset(&value, 0, sizeof(value));
+        if (db->get(db, &key, &value, 0) == 0) {
+          organization = value.data;
         }
       }
     }
@@ -477,6 +335,10 @@ int main(int argc, char** argv) {
   }
 
   printf("\n%zu IPs in use\n", numLeases);
+
+  if (db->close(db) != 0) {
+      printf("db->close error errno %d: %s\n", errno, errnoToString(errno));
+  }
 
   return 0;
 }

@@ -2,18 +2,24 @@ CC = cc
 CFLAGS = -g -Wall
 LDFLAGS =
 
-SRC = main.c
-OBJS = $(SRC:.c=.o)
+MAKE_DB_SRC = make-db.c
+MAKE_DB_OBJS = $(MAKE_DB_SRC:.c=.o)
 
-all: dhcp-leases
+SHOW_LEASES_SRC = show-leases.c
+SHOW_LEASES_OBJS = $(SHOW_LEASES_SRC:.c=.o)
+
+all: make-db show-leases
 
 clean:
-	rm -f *.o dhcp-leases
+	rm -f *.o make-db show-leases
 
-dhcp-leases: $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+make-db: $(MAKE_DB_OBJS)
+	$(CC) $(LDFLAGS) $(MAKE_DB_OBJS) -o $@
+
+show-leases: $(SHOW_LEASES_OBJS)
+	$(CC) $(LDFLAGS) $(SHOW_LEASES_OBJS) -o $@
 
 depend:
-	$(CC) $(CFLAGS) -MM $(SRC) > .makeinclude
+	$(CC) $(CFLAGS) -MM $(MAKE_DB_SRC) $(SHOW_LEASES_SRC) > .makeinclude
 
 include .makeinclude
