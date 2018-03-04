@@ -207,7 +207,6 @@ struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
     if (sscanf(ouiString, "%x", &(ouiInfoEntry.oui)) == 1) {
       struct OuiInfo* existingOuiInfo = RB_FIND(OuiInfoTree, ouiInfoTree, &ouiInfoEntry);
       if (existingOuiInfo != NULL) {
-        struct OuiAndOrganization* previousOuiAndOrganization;
         struct OuiAndOrganization* ouiAndOrganization;
 
         RB_REMOVE(OuiInfoTree, ouiInfoTree, existingOuiInfo);
@@ -218,10 +217,9 @@ struct OuiAndOrganizationTree* readOuiFile(struct OuiInfoTree* ouiInfoTree) {
         ouiAndOrganization->oui = ouiInfoEntry.oui;
         ouiAndOrganization->organization = strdup(&(line[22]));
 
-        previousOuiAndOrganization = RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization);
-        if (previousOuiAndOrganization != NULL) {
-          freeOuiAndOrganization(previousOuiAndOrganization);
-          previousOuiAndOrganization = NULL;
+        if (RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization) != NULL) {
+          freeOuiAndOrganization(ouiAndOrganization);
+          ouiAndOrganization = NULL;
         }
       }
     }
@@ -404,12 +402,9 @@ struct OuiInfoTree* generateOuiInfoTree(struct DhcpdLeaseTree* dhcpdLeaseTree) {
     if (dhcpdLease->mac != NULL) {
       uint8_t byte1, byte2, byte3;
       if (sscanf(dhcpdLease->mac, "%hhx:%hhx:%hhx", &byte1, &byte2, &byte3) == 3) {
-        struct OuiInfo* ouiInfo;
-        struct OuiInfo* previousEntry;
-        ouiInfo = checkedMalloc(sizeof(struct OuiInfo));
+        struct OuiInfo* ouiInfo = checkedMalloc(sizeof(struct OuiInfo));
         ouiInfo->oui = (byte1 << 16) | (byte2 << 8) | byte3;
-        previousEntry = RB_INSERT(OuiInfoTree, ouiInfoTree, ouiInfo);
-        if (previousEntry != NULL) {
+        if (RB_INSERT(OuiInfoTree, ouiInfoTree, ouiInfo) != NULL) {
           freeOuiInfo(ouiInfo);
         }
       }
