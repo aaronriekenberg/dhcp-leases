@@ -70,9 +70,16 @@ typedef uint32_t Oui;
 
 struct OuiAndOrganization {
   Oui oui;
-  const char* organization;
+  char* organization;
   RB_ENTRY(OuiAndOrganization) entry;
 };
+
+static void freeOuiAndOrganization(struct OuiAndOrganization* ouiAndOrganization) {
+  if (ouiAndOrganization != NULL) {
+    free(ouiAndOrganization->organization);
+    free(ouiAndOrganization);
+  }
+}
 
 static int compareOuiAndOrganization(
   const struct OuiAndOrganization* o1,
@@ -173,10 +180,14 @@ struct OuiAndOrganizationTree* readOuiFile() {
     ouiString[6] = '\0';
 
     if (sscanf(ouiString, "%x", &oui) == 1) {
+      struct OuiAndOrganization* previousEntry;
       struct OuiAndOrganization* ouiAndOrganization = checkedMalloc(sizeof(struct OuiAndOrganization));
       ouiAndOrganization->oui = oui;
       ouiAndOrganization->organization = strdup(&(line[22]));
-      RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization);
+      previousEntry = RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization);
+      if (previousEntry != NULL) {
+        freeOuiAndOrganization(ouiAndOrganization);
+      }
     }
   }
 
