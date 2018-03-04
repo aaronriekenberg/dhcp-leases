@@ -1,3 +1,4 @@
+#include "oui.h"
 #include <db.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -68,8 +69,6 @@ static int compareDhcpdLease(
 RB_HEAD(DhcpdLeaseTree, DhcpdLease);
 
 RB_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease)
-
-typedef uint32_t Oui;
 
 static void* checkedCallocOne(
   const size_t size)

@@ -1,3 +1,4 @@
+#include "oui.h"
 #include <db.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -7,8 +8,6 @@
 #include <string.h>
 #include <sys/tree.h>
 #include <sys/types.h>
-
-typedef uint32_t Oui;
 
 struct OuiAndOrganization {
   Oui oui;
@@ -70,7 +69,7 @@ static const char* errnoToString(const int errnoToTranslate)
 }
 
 struct OuiAndOrganizationTree* readOuiFile() {
-  const char* fileName = "/home/aaron/dhcp-leases/oui.txt";
+  const char* fileName = "oui.txt";
   FILE* ouiFile;
   char* line = NULL;
   size_t lineCapacity = 0;

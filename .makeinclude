@@ -1,2 +1,2 @@
-make-db.o: make-db.c
-show-leases.o: show-leases.c
+make-db.o: make-db.c oui.h
+show-leases.o: show-leases.c oui.h
