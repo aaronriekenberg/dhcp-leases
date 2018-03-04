@@ -92,11 +92,12 @@ struct OuiAndOrganizationTree* readOuiFile() {
   while ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1) {
     Oui oui;
 
-    /* kill cr and newline */
-    if (lineLength >= 2) {
+    /* kill \r and \n */
+    while ((lineLength >= 1) &&
+           ((line[lineLength - 1] == '\r') ||
+            (line[lineLength - 1] == '\n'))) {
       line[lineLength - 1] = '\0';
-      line[lineLength - 2] = '\0';
-      lineLength -= 2;
+      lineLength -= 1;
     }
 
     if ((lineLength < 23) ||

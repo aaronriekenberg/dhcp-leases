@@ -144,8 +144,10 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
     char* tokens[MAX_TOKENS];
     size_t numTokens = 0;
 
-    /* kill newline */
-    if (lineLength > 0) {
+    /* kill \r and \n */
+    while ((lineLength >= 1) &&
+           ((line[lineLength - 1] == '\r') ||
+            (line[lineLength - 1] == '\n'))) {
       line[lineLength - 1] = '\0';
       lineLength -= 1;
     }
