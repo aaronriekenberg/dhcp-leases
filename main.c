@@ -355,12 +355,13 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
       }
 
       else if ((numTokens >= 2) &&
-               (strcmp(tokens[0], "client-hostname") == 0) &&
-               (strlen(tokens[1]) > 3)) {
+               (strcmp(tokens[0], "client-hostname") == 0)) {
         const size_t hostnameLength = strlen(tokens[1]);
-        tokens[1][hostnameLength - 1] = '\0';
-        tokens[1][hostnameLength - 2] = '\0';
-        currentDhcpdLease->hostname = strdup(&(tokens[1][1]));
+        if (hostnameLength > 3) {
+          tokens[1][hostnameLength - 1] = '\0';
+          tokens[1][hostnameLength - 2] = '\0';
+          currentDhcpdLease->hostname = strdup(&(tokens[1][1]));
+        }
       }
 
     }
