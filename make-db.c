@@ -26,7 +26,7 @@ static const char* errnoToString(const int errnoToTranslate)
   return errorString;
 }
 
-void readOuiFile(DB* db) {
+static void readOuiFile(DB* db) {
   const char* fileName = "oui.txt";
   FILE* ouiFile;
   char* line = NULL;
