@@ -64,7 +64,7 @@ static void readOuiFile(DB* db) {
     line[6] = '\0';
     if (sscanf(line, "%x", &oui) == 1) {
       DBT key, value;
-      char* organization = strdup(&(line[22]));
+      char* organization = &(line[22]);
 
       key.data = &oui;
       key.size = sizeof(oui);
