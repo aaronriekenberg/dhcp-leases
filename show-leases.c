@@ -113,7 +113,7 @@ static const char* errnoToString(const int errnoToTranslate)
   return errorString;
 }
 
-static const size_t MAX_TOKENS = 5;
+static const size_t MAX_TOKENS = 4;
 
 struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   const char* fileName = "/var/db/dhcpd.leases";
@@ -141,7 +141,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   while ((lineLength = getline(&line, &lineCapacity, dhcpdLeasesFile)) != -1) {
     size_t i;
     char** token;
-    char* tokens[MAX_TOKENS];
+    char* tokens[MAX_TOKENS + 1];
     size_t numTokens = 0;
 
     /* kill \r and \n */
@@ -152,7 +152,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
       lineLength -= 1;
     }
 
-    for (token = tokens; token < &(tokens[MAX_TOKENS - 1]) && 
+    for (token = tokens; token < &(tokens[MAX_TOKENS]) &&
                          ((*token) = strsep(&line, " \t")) != NULL;) {
       if ((**token) != '\0') {
         token++;
@@ -160,7 +160,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
     }
     (*token) = NULL;
 
-    for (i = 0; i < MAX_TOKENS; ++i) {
+    for (i = 0; i < (MAX_TOKENS + 1); ++i) {
       if (tokens[i] == NULL) {
         numTokens = i;
         break;
