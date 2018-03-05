@@ -270,7 +270,6 @@ int main(int argc, char** argv) {
   size_t numLeases = 0;
   DB* db;
   BTREEINFO btreeinfo;
-  DBT key, value;
 
   dhcpdLeaseTree = readDhcpdLeasesFile();
 
@@ -318,6 +317,7 @@ int main(int argc, char** argv) {
     if (dhcpdLease->mac != NULL) {
       uint8_t byte1, byte2, byte3;
       if (sscanf(dhcpdLease->mac, "%hhx:%hhx:%hhx", &byte1, &byte2, &byte3) == 3) {
+        DBT key, value;
         Oui oui = (byte1 << 16) | (byte2 << 8) | byte3;
         key.data = &oui;
         key.size = sizeof(oui);
