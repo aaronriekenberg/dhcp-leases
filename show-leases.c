@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
   printf("\n%zu IPs in use\n", numLeases);
 
   if (db->close(db) != 0) {
-      printf("db->close error errno %d: %s\n", errno, errnoToString(errno));
+    printf("db->close error errno %d: %s\n", errno, errnoToString(errno));
   }
 
   return 0;
