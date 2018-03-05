@@ -6,49 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/tree.h>
 #include <sys/types.h>
-
-struct OuiAndOrganization {
-  Oui oui;
-  char* organization;
-  RB_ENTRY(OuiAndOrganization) entry;
-};
-
-static void freeOuiAndOrganization(struct OuiAndOrganization* ouiAndOrganization) {
-  if (ouiAndOrganization != NULL) {
-    free(ouiAndOrganization->organization);
-    free(ouiAndOrganization);
-  }
-}
-
-static int compareOuiAndOrganization(
-  const struct OuiAndOrganization* o1,
-  const struct OuiAndOrganization* o2) {
-  if (o1->oui < o2->oui) {
-    return -1;
-  } else if (o1->oui == o2->oui) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-RB_HEAD(OuiAndOrganizationTree, OuiAndOrganization);
-
-RB_GENERATE(OuiAndOrganizationTree, OuiAndOrganization, entry, compareOuiAndOrganization)
-
-static void* checkedMalloc(
-  const size_t size)
-{
-  void* retVal = malloc(size);
-  if (retVal == NULL)
-  {
-    printf("malloc failed size %zu\n", size);
-    abort();
-  }
-  return retVal;
-}
 
 static const char* errnoToString(const int errnoToTranslate)
 {
@@ -68,17 +26,14 @@ static const char* errnoToString(const int errnoToTranslate)
   return errorString;
 }
 
-struct OuiAndOrganizationTree* readOuiFile() {
+void readOuiFile(DB* db) {
   const char* fileName = "oui.txt";
   FILE* ouiFile;
   char* line = NULL;
   size_t lineCapacity = 0;
   ssize_t lineLength;
-  struct OuiAndOrganizationTree* ouiAndOrganizationTree;
   int error;
-
-  ouiAndOrganizationTree = checkedMalloc(sizeof(struct OuiAndOrganizationTree));
-  RB_INIT(ouiAndOrganizationTree);
+  size_t totalRecords = 0, recordsWritten = 0;
 
   printf("reading %s\n", fileName);
   ouiFile = fopen(fileName, "r");
@@ -86,7 +41,7 @@ struct OuiAndOrganizationTree* readOuiFile() {
   if (ouiFile == NULL) {
     printf("failed to open %s errno %d: %s", 
            fileName, errno, errnoToString(errno));
-    return ouiAndOrganizationTree;
+    return;
   }
 
   while ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1) {
@@ -108,15 +63,21 @@ struct OuiAndOrganizationTree* readOuiFile() {
 
     line[6] = '\0';
     if (sscanf(line, "%x", &oui) == 1) {
-      struct OuiAndOrganization* ouiAndOrganization;
+      DBT key, value;
+      char* organization = strdup(&(line[22]));
 
-      ouiAndOrganization = checkedMalloc(sizeof(struct OuiAndOrganization));
-      ouiAndOrganization->oui = oui;
-      ouiAndOrganization->organization = strdup(&(line[22]));
+      key.data = &oui;
+      key.size = sizeof(oui);
 
-      if (RB_INSERT(OuiAndOrganizationTree, ouiAndOrganizationTree, ouiAndOrganization) != NULL) {
-        freeOuiAndOrganization(ouiAndOrganization);
-        ouiAndOrganization = NULL;
+      value.data = organization;
+      value.size = strlen(organization) + 1;
+
+      ++totalRecords;
+
+      if (db->put(db, &key, &value, 0) != 0) {
+        printf("db->put error errno %d: %s\n", errno, errnoToString(errno));
+      } else {
+        ++recordsWritten;
       }
     }
   }
@@ -134,21 +95,15 @@ struct OuiAndOrganizationTree* readOuiFile() {
            fileName, error, errnoToString(error));
   }
 
-  return ouiAndOrganizationTree;
+  printf("totalRecords = %zu recordsWritten = %zu\n", totalRecords, recordsWritten);
 }
 
 int main(int argc, char** argv) {
   const char* dbFileName = "oui.db";
-  struct OuiAndOrganizationTree* ouiAndOrganizationTree;
-  struct OuiAndOrganization* ouiAndOrganization;
   DB* db;
   BTREEINFO btreeinfo;
-  DBT key, value;
-  size_t totalRecords = 0, recordsWritten = 0;
 
-  ouiAndOrganizationTree = readOuiFile();
-
-  printf("dbFileName = %s", dbFileName);
+  printf("dbFileName = %s\n", dbFileName);
 
   memset(&btreeinfo, 0, sizeof(btreeinfo));
   db = dbopen(dbFileName, O_CREAT|O_TRUNC|O_EXLOCK|O_RDWR, 0600, DB_BTREE, &btreeinfo);
@@ -157,26 +112,11 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  RB_FOREACH(ouiAndOrganization, OuiAndOrganizationTree, ouiAndOrganizationTree) {
-    key.data = &(ouiAndOrganization->oui);
-    key.size = sizeof(ouiAndOrganization->oui);
-    value.data = ouiAndOrganization->organization;
-    value.size = strlen(ouiAndOrganization->organization) + 1;
-
-    ++totalRecords;
-
-    if (db->put(db, &key, &value, 0) != 0) {
-      printf("db->put error errno %d: %s\n", errno, errnoToString(errno));
-    } else {
-      ++recordsWritten;
-    }
-  }
+  readOuiFile(db);
 
   if (db->close(db) != 0) {
       printf("db->close error errno %d: %s\n", errno, errnoToString(errno));
   }
-
-  printf("totalRecords = %zu recordsWritten = %zu\n", totalRecords, recordsWritten);
 
   return 0;
 }
