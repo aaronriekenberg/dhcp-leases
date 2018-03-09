@@ -242,7 +242,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   return dhcpdLeaseTree;
 }
 
-const char* getDhcpdLeaseState(
+static const char* getDhcpdLeaseState(
   const struct DhcpdLease* dhcpdLease,
   const time_t* now) {
   if (dhcpdLease->abandoned) {
