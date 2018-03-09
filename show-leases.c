@@ -242,14 +242,28 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   return dhcpdLeaseTree;
 }
 
+const char* getDhcpdLeaseState(
+  const struct DhcpdLease* dhcpdLease,
+  const time_t* now) {
+  if (dhcpdLease->abandoned) {
+    return "ABANDONED";
+  } else if ((*now) < (dhcpdLease->startTime)) {
+    return "FUTURE";
+  } else if (((*now) >= (dhcpdLease->startTime)) &&
+             ((dhcpdLease->endTime) >= (*now))) {
+    return "CURRENT";
+  } else {
+    return "PAST";
+  }
+}
+
 int main(int argc, char** argv) {
   const char* dbFileName = "oui.db";
+  DB* db;
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* dhcpdLease;
+  time_t now;
   size_t numLeases = 0;
-  DB* db;
-
-  dhcpdLeaseTree = readDhcpdLeasesFile();
 
   db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
   if (db == NULL) {
@@ -259,8 +273,12 @@ int main(int argc, char** argv) {
 
   printf("dbFileName = %s\n", dbFileName);
 
-  printf("\n%-18s%-28s%-20s%-24s%s\n", "IP", "End Time", "MAC", "Hostname", "Organization");
-  printf("====================================================================================================================\n");
+  dhcpdLeaseTree = readDhcpdLeasesFile();
+
+  now = time(NULL);
+
+  printf("\n%-18s%-11s%-28s%-20s%-24s%s\n", "IP", "State", "End Time", "MAC", "Hostname", "Organization");
+  printf("===============================================================================================================================\n");
 
   RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
@@ -273,6 +291,8 @@ int main(int argc, char** argv) {
     ipAddressAddr.s_addr = dhcpdLease->ip;
     printf("%-18s", inet_ntoa(ipAddressAddr));
 
+    printf("%-11s", getDhcpdLeaseState(dhcpdLease, &now));
+
     if ((dhcpdLease->endTime != 0) &&
         ((tm = localtime(&(dhcpdLease->endTime))) != NULL) &&
         (strftime(buffer, 80, "%Y/%m/%d %H:%M:%S %z", tm) != 0)) {
@@ -281,9 +301,7 @@ int main(int argc, char** argv) {
       printf("%-28s", "NA");
     }
 
-    if (dhcpdLease->abandoned) {
-      printf("%-20s", "ABANDONED");
-    } else if (dhcpdLease->mac != NULL) {
+    if (dhcpdLease->mac != NULL) {
       printf("%-20s", dhcpdLease->mac);
     } else {
       printf("%-20s", "NA");
