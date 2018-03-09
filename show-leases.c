@@ -243,12 +243,10 @@ int main(int argc, char** argv) {
   struct DhcpdLease* dhcpdLease;
   size_t numLeases = 0;
   DB* db;
-  BTREEINFO btreeinfo;
 
   dhcpdLeaseTree = readDhcpdLeasesFile();
 
-  memset(&btreeinfo, 0, sizeof(btreeinfo));
-  db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, &btreeinfo);
+  db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
   if (db == NULL) {
     printf("dbopen error %s errno %d: %s\n", dbFileName, errno, errnoToString(errno));
     return 1;

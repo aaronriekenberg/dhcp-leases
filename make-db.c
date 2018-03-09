@@ -101,12 +101,10 @@ static void readOuiFile(DB* db) {
 int main(int argc, char** argv) {
   const char* dbFileName = "oui.db";
   DB* db;
-  BTREEINFO btreeinfo;
 
   printf("dbFileName = %s\n", dbFileName);
 
-  memset(&btreeinfo, 0, sizeof(btreeinfo));
-  db = dbopen(dbFileName, O_CREAT|O_TRUNC|O_EXLOCK|O_RDWR, 0600, DB_BTREE, &btreeinfo);
+  db = dbopen(dbFileName, O_CREAT|O_TRUNC|O_EXLOCK|O_RDWR, 0600, DB_BTREE, NULL);
   if (db == NULL) {
     printf("dbopen error %s errno %d: %s\n", dbFileName, errno, errnoToString(errno));
     return 1;
