@@ -282,8 +282,8 @@ int main(int argc, char** argv) {
 
   RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
-    char buffer[80];
     struct tm* tm;
+    char timeBuffer[80];
     const char* organization = NULL;
 
     ++numLeases;
@@ -295,8 +295,8 @@ int main(int argc, char** argv) {
 
     if ((dhcpdLease->endTime != 0) &&
         ((tm = localtime(&(dhcpdLease->endTime))) != NULL) &&
-        (strftime(buffer, 80, "%Y/%m/%d %H:%M:%S %z", tm) != 0)) {
-      printf("%-28s", buffer);
+        (strftime(timeBuffer, 80, "%Y/%m/%d %H:%M:%S %z", tm) != 0)) {
+      printf("%-28s", timeBuffer);
     } else {
       printf("%-28s", "NA");
     }
@@ -308,10 +308,9 @@ int main(int argc, char** argv) {
     }
 
     if (dhcpdLease->hostname != NULL) {
-      if (strlen(dhcpdLease->hostname) > 23) {
-        dhcpdLease->hostname[23] = '\0';
-      }
-      printf("%-24s", dhcpdLease->hostname);
+      char hostnameBuffer[23];
+      strlcpy(hostnameBuffer, dhcpdLease->hostname, sizeof(hostnameBuffer));
+      printf("%-24s", hostnameBuffer);
     } else {
       printf("%-24s", "NA");
     }
