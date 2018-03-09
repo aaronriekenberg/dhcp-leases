@@ -45,7 +45,7 @@ static int compareDhcpdLease(
 
 RB_HEAD(DhcpdLeaseTree, DhcpdLease);
 
-RB_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease)
+RB_GENERATE_STATIC(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease)
 
 static void* checkedCallocOne(
   const size_t size)
