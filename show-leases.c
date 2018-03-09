@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,7 @@ struct DhcpdLease {
   time_t endTime;
   char* mac;
   char* hostname;
+  bool abandoned;
   RB_ENTRY(DhcpdLease) entry;
 };
 
@@ -211,6 +213,11 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
         }
       }
 
+      else if ((numTokens >= 1) &&
+               (strcmp(tokens[0], "abandoned;") == 0)) {
+        currentDhcpdLease->abandoned = true;
+      }
+
     }
   }
 
@@ -274,7 +281,9 @@ int main(int argc, char** argv) {
       printf("%-28s", "NA");
     }
 
-    if (dhcpdLease->mac != NULL) {
+    if (dhcpdLease->abandoned) {
+      printf("%-20s", "ABANDONED");
+    } else if (dhcpdLease->mac != NULL) {
       printf("%-20s", dhcpdLease->mac);
     } else {
       printf("%-20s", "NA");
