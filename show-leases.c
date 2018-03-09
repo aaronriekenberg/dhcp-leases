@@ -308,9 +308,7 @@ int main(int argc, char** argv) {
     }
 
     if (dhcpdLease->hostname != NULL) {
-      char hostnameBuffer[23];
-      strlcpy(hostnameBuffer, dhcpdLease->hostname, sizeof(hostnameBuffer));
-      printf("%-24s", hostnameBuffer);
+      printf("%-24.23s", dhcpdLease->hostname);
     } else {
       printf("%-24s", "NA");
     }
