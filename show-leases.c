@@ -308,6 +308,9 @@ int main(int argc, char** argv) {
     }
 
     if (dhcpdLease->hostname != NULL) {
+      if (strlen(dhcpdLease->hostname) > 23) {
+        dhcpdLease->hostname[23] = '\0';
+      }
       printf("%-24s", dhcpdLease->hostname);
     } else {
       printf("%-24s", "NA");
