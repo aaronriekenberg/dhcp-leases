@@ -94,7 +94,6 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   const char* fileName = "/var/db/dhcpd.leases";
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* currentDhcpdLease = NULL;
-  struct DhcpdLease* tmpDhcpdLease;
   FILE* dhcpdLeasesFile;
   char* line = NULL;
   size_t lineCapacity = 0;
@@ -157,10 +156,9 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
       if ((numTokens >= 1) &&
           (strcmp(tokens[0], "}") == 0)) {
-        tmpDhcpdLease = RB_FIND(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
-        if (tmpDhcpdLease == NULL) {
+        struct DhcpdLease* tmpDhcpdLease =
           RB_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
-        } else {
+        if (tmpDhcpdLease != NULL) {
           if (currentDhcpdLease->endTime >= tmpDhcpdLease->endTime) {
             RB_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, tmpDhcpdLease);
             freeDhcpdLease(tmpDhcpdLease);
