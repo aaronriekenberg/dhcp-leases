@@ -260,10 +260,10 @@ int main(int argc, char** argv) {
   printf("====================================================================================================================\n");
 
   RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
+    struct in_addr ipAddressAddr;
     char buffer[80];
     struct tm* tm;
     const char* organization = NULL;
-    struct in_addr ipAddressAddr;
 
     ++numLeases;
 
