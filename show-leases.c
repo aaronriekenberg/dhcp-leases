@@ -1,4 +1,5 @@
 #include "oui.h"
+#include <arpa/inet.h>
 #include <db.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -11,7 +12,7 @@
 #include <time.h>
 
 struct DhcpdLease {
-  char* ip;
+  in_addr_t ip;
   time_t startTime;
   time_t endTime;
   char* mac;
@@ -22,48 +23,22 @@ struct DhcpdLease {
 static void freeDhcpdLease(
   struct DhcpdLease* dhcpdLease) {
   if (dhcpdLease != NULL) {
-    free(dhcpdLease->ip);
     free(dhcpdLease->mac);
     free(dhcpdLease->hostname);
     free(dhcpdLease);
   }
 }
 
-#if 0
-static void printDhcpdLease(
-  const struct DhcpdLease* dhcpdLease) {
-  printf("dhcpdLease = %p\n", dhcpdLease);
-  if (dhcpdLease != NULL) {
-    if (dhcpdLease->ip == NULL) {
-      printf("dhcpdLease->ip = NULL\n");
-    } else {
-      printf("dhcpdLease->ip = '%s'\n", dhcpdLease->ip);
-    }
-
-    printf("dhcpdLease->startTime = %lld\n", dhcpdLease->startTime);
-
-    printf("dhcpdLease->endTime = %lld\n", dhcpdLease->endTime);
-
-    if (dhcpdLease->mac == NULL) {
-      printf("dhcpdLease->mac = NULL\n");
-    } else {
-      printf("dhcpdLease->mac = '%s'\n", dhcpdLease->mac);
-    }
-
-    if (dhcpdLease->hostname == NULL) {
-      printf("dhcpdLease->hostname = NULL\n");
-    } else {
-      printf("dhcpdLease->hostname = '%s'\n", dhcpdLease->hostname);
-    }
-
-  }
-}
-#endif
-
 static int compareDhcpdLease(
   const struct DhcpdLease* d1,
   const struct DhcpdLease* d2) {
-  return strcmp(d1->ip, d2->ip);
+  if (d1->ip < d2->ip) {
+    return -1;
+  } else if (d1->ip == d2->ip) {
+    return 0;
+  } else {
+    return 1;
+  }
 }
 
 RB_HEAD(DhcpdLeaseTree, DhcpdLease);
@@ -172,9 +147,8 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
       if ((numTokens >= 2) &&
           (strcmp(tokens[0], "lease") == 0) &&
           (strcmp(tokens[2], "{") == 0)) {
-        char* ip = strdup(tokens[1]);
         currentDhcpdLease = checkedCallocOne(sizeof(struct DhcpdLease));
-        currentDhcpdLease->ip = ip;
+        currentDhcpdLease->ip = inet_addr(tokens[1]);
       }
 
     } 
@@ -289,10 +263,12 @@ int main(int argc, char** argv) {
     char buffer[80];
     struct tm* tm;
     const char* organization = NULL;
+    struct in_addr ipAddressAddr;
 
     ++numLeases;
 
-    printf("%-18s", dhcpdLease->ip);    
+    ipAddressAddr.s_addr = dhcpdLease->ip;
+    printf("%-18s", inet_ntoa(ipAddressAddr));
 
     if ((dhcpdLease->endTime != 0) &&
         ((tm = localtime(&(dhcpdLease->endTime))) != NULL) &&
