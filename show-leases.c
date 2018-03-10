@@ -33,7 +33,7 @@ static void freeDhcpdLease(
   }
 }
 
-static int compareDhcpdLease(
+static inline int compareDhcpdLease(
   const struct DhcpdLease* d1,
   const struct DhcpdLease* d2) {
   if (d1->ip < d2->ip) {
