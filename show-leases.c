@@ -249,6 +249,7 @@ int main(int argc, char** argv) {
   struct DhcpdLease* dhcpdLease;
   time_t now;
   size_t numLeases = 0;
+  int i;
 
   if (pledge("stdio flock rpath", NULL) == -1) {
     printf("pledge error %d: %s\n", errno, strerror(errno));
@@ -268,7 +269,10 @@ int main(int argc, char** argv) {
   now = time(NULL);
 
   printf("\n%-18s%-11s%-28s%-20s%-24s%s\n", "IP", "State", "End Time", "MAC", "Hostname", "Organization");
-  printf("===============================================================================================================================\n");
+  for (i = 0; i < 128; ++i) {
+    fputc('=', stdout);
+  }
+  fputc('\n', stdout);
 
   RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
@@ -321,7 +325,7 @@ int main(int argc, char** argv) {
     } else {
       printf("%s", "NA");
     }
-    printf("\n");
+    fputc('\n', stdout);
   }
 
   printf("\n%zu IPs in use\n", numLeases);
