@@ -270,9 +270,9 @@ int main(int argc, char** argv) {
 
   printf("\n%-18s%-11s%-28s%-20s%-24s%s\n", "IP", "State", "End Time", "MAC", "Hostname", "Organization");
   for (i = 0; i < 128; ++i) {
-    fputc('=', stdout);
+    putchar('=');
   }
-  fputc('\n', stdout);
+  putchar('\n');
 
   RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
@@ -325,7 +325,7 @@ int main(int argc, char** argv) {
     } else {
       printf("%s", "NA");
     }
-    fputc('\n', stdout);
+    putchar('\n');
   }
 
   printf("\n%zu IPs in use\n", numLeases);
