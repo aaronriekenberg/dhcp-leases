@@ -9,24 +9,6 @@
 #include <string.h>
 #include <sys/types.h>
 
-static const char* errnoToString(const int errnoToTranslate)
-{
-  const int previousErrno = errno;
-  const char* errorString;
-
-  errno = 0;
-  errorString = strerror(errnoToTranslate);
-  if (errno != 0)
-  {
-    printf("strerror error errnoToTranslate = %d errno = %d\n",
-           errnoToTranslate, errno);
-    abort();
-  }
-
-  errno = previousErrno;
-  return errorString;
-}
-
 static void readOuiFile(DB* db) {
   const char* fileName = "oui.txt";
   FILE* ouiFile;
@@ -41,7 +23,7 @@ static void readOuiFile(DB* db) {
 
   if (ouiFile == NULL) {
     printf("failed to open %s errno %d: %s", 
-           fileName, errno, errnoToString(errno));
+           fileName, errno, strerror(errno));
     return;
   }
 
@@ -80,7 +62,7 @@ static void readOuiFile(DB* db) {
       ++totalRecords;
 
       if (db->put(db, &key, &value, 0) != 0) {
-        printf("db->put error errno %d: %s\n", errno, errnoToString(errno));
+        printf("db->put error errno %d: %s\n", errno, strerror(errno));
       } else {
         ++recordsWritten;
       }
@@ -89,7 +71,7 @@ static void readOuiFile(DB* db) {
 
   if ((error = ferror(ouiFile)) != 0) {
     printf("error reading oui file %s errno %d: %s", 
-           fileName, error, errnoToString(error));
+           fileName, error, strerror(error));
   }
 
   free(line);
@@ -97,7 +79,7 @@ static void readOuiFile(DB* db) {
 
   if ((error = fclose(ouiFile)) != 0) {
     printf("error closing oui file %s errno %d: %s", 
-           fileName, error, errnoToString(error));
+           fileName, error, strerror(error));
   }
 
   printf("totalRecords = %zu recordsWritten = %zu\n", totalRecords, recordsWritten);
@@ -111,14 +93,14 @@ int main(int argc, char** argv) {
 
   db = dbopen(dbFileName, O_CREAT|O_TRUNC|O_EXLOCK|O_RDWR, 0600, DB_BTREE, NULL);
   if (db == NULL) {
-    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, errnoToString(errno));
+    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, strerror(errno));
     return 1;
   }
 
   readOuiFile(db);
 
   if (db->close(db) != 0) {
-    printf("db->close error errno %d: %s\n", errno, errnoToString(errno));
+    printf("db->close error errno %d: %s\n", errno, strerror(errno));
   }
 
   return 0;

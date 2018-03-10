@@ -74,24 +74,6 @@ static void* checkedMalloc(
   return retVal;
 }
 
-static const char* errnoToString(const int errnoToTranslate)
-{
-  const int previousErrno = errno;
-  const char* errorString;
-
-  errno = 0;
-  errorString = strerror(errnoToTranslate);
-  if (errno != 0)
-  {
-    printf("strerror error errnoToTranslate = %d errno = %d\n",
-           errnoToTranslate, errno);
-    abort();
-  }
-
-  errno = previousErrno;
-  return errorString;
-}
-
 static const size_t MAX_TOKENS = 4;
 
 struct DhcpdLeaseTree* readDhcpdLeasesFile() {
@@ -112,7 +94,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
   if (dhcpdLeasesFile == NULL) {
     printf("failed to open %s errno %d: %s", 
-           fileName, errno, errnoToString(errno));
+           fileName, errno, strerror(errno));
     return dhcpdLeaseTree;
   }
 
@@ -225,7 +207,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
   if ((error = ferror(dhcpdLeasesFile)) != 0) {
     printf("error reading dhcpd leases file %s errno %d: %s", 
-           fileName, error, errnoToString(error));
+           fileName, error, strerror(error));
   }
 
   free(line);
@@ -233,7 +215,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
   if ((error = fclose(dhcpdLeasesFile)) != 0) {
     printf("error closing dhcpd leases file %s errno %d: %s", 
-           fileName, error, errnoToString(error));
+           fileName, error, strerror(error));
   }
 
   if (currentDhcpdLease != NULL) {
@@ -269,7 +251,7 @@ int main(int argc, char** argv) {
 
   db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
   if (db == NULL) {
-    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, errnoToString(errno));
+    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, strerror(errno));
     return 1;
   }
 
@@ -339,7 +321,7 @@ int main(int argc, char** argv) {
   printf("\n%zu IPs in use\n", numLeases);
 
   if (db->close(db) != 0) {
-    printf("db->close error errno %d: %s\n", errno, errnoToString(errno));
+    printf("db->close error errno %d: %s\n", errno, strerror(errno));
   }
 
   return 0;
