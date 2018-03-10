@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +20,7 @@ struct DhcpdLease {
   char* mac;
   char* hostname;
   bool abandoned;
-  RB_ENTRY(DhcpdLease) entry;
+  RBT_ENTRY(DhcpdLease) entry;
 };
 
 static void freeDhcpdLease(
@@ -43,9 +44,10 @@ static int compareDhcpdLease(
   }
 }
 
-RB_HEAD(DhcpdLeaseTree, DhcpdLease);
+RBT_HEAD(DhcpdLeaseTree, DhcpdLease);
 
-RB_GENERATE_STATIC(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease)
+RBT_PROTOTYPE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease);
+RBT_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease);
 
 static void* checkedCallocOne(
   const size_t size)
@@ -103,7 +105,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   int error;
 
   dhcpdLeaseTree = checkedMalloc(sizeof(struct DhcpdLeaseTree));
-  RB_INIT(dhcpdLeaseTree);
+  RBT_INIT(DhcpdLeaseTree, dhcpdLeaseTree);
 
   printf("reading %s\n", fileName);
   dhcpdLeasesFile = fopen(fileName, "r");
@@ -159,13 +161,13 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
       if ((numTokens >= 1) &&
           (strcmp(tokens[0], "}") == 0)) {
         struct DhcpdLease* tmpDhcpdLease =
-          RB_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
+          RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
         if (tmpDhcpdLease != NULL) {
           if (currentDhcpdLease->endTime >= tmpDhcpdLease->endTime) {
-            RB_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, tmpDhcpdLease);
+            RBT_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, tmpDhcpdLease);
             freeDhcpdLease(tmpDhcpdLease);
             tmpDhcpdLease = NULL;
-            RB_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
+            RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
           } else {
             freeDhcpdLease(currentDhcpdLease);
           }
@@ -280,7 +282,7 @@ int main(int argc, char** argv) {
   printf("\n%-18s%-11s%-28s%-20s%-24s%s\n", "IP", "State", "End Time", "MAC", "Hostname", "Organization");
   printf("===============================================================================================================================\n");
 
-  RB_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
+  RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
     struct tm* tm;
     char timeBuffer[80];
