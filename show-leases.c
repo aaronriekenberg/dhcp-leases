@@ -248,14 +248,14 @@ static const char* getDhcpdLeaseState(
   const struct DhcpdLease* dhcpdLease,
   const time_t* now) {
   if (dhcpdLease->abandoned) {
-    return "ABANDONED";
+    return "Abandoned";
   } else if ((*now) < (dhcpdLease->startTime)) {
-    return "FUTURE";
+    return "Future";
   } else if (((*now) >= (dhcpdLease->startTime)) &&
              ((dhcpdLease->endTime) >= (*now))) {
-    return "CURRENT";
+    return "Current";
   } else {
-    return "PAST";
+    return "Past";
   }
 }
 
