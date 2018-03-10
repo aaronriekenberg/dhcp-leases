@@ -1,4 +1,5 @@
 #include "oui.h"
+#include <ctype.h>
 #include <db.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -56,8 +57,12 @@ static void readOuiFile(DB* db) {
     }
 
     if ((lineLength < 23) ||
-        (line[0] == '\t') ||
-        (line[2] == '-')) {
+        (!isxdigit(line[0])) ||
+        (!isxdigit(line[1])) ||
+        (!isxdigit(line[2])) ||
+        (!isxdigit(line[3])) ||
+        (!isxdigit(line[4])) ||
+        (!isxdigit(line[5]))) {
       continue;
     }
 
