@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 static void readOuiFile(DB* db) {
   const char* fileName = "oui.txt";
@@ -88,6 +89,11 @@ static void readOuiFile(DB* db) {
 int main(int argc, char** argv) {
   const char* dbFileName = "oui.db";
   DB* db;
+
+  if (pledge("stdio flock cpath rpath wpath", NULL) == -1) {
+    printf("pledge error %d: %s\n", errno, strerror(errno));
+    return 1;
+  }
 
   printf("dbFileName = %s\n", dbFileName);
 

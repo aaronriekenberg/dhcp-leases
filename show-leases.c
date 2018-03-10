@@ -12,6 +12,7 @@
 #include <sys/tree.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 struct DhcpdLease {
   in_addr_t ip;
@@ -248,6 +249,11 @@ int main(int argc, char** argv) {
   struct DhcpdLease* dhcpdLease;
   time_t now;
   size_t numLeases = 0;
+
+  if (pledge("stdio flock rpath", NULL) == -1) {
+    printf("pledge error %d: %s\n", errno, strerror(errno));
+    return 1;
+  }
 
   db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
   if (db == NULL) {
