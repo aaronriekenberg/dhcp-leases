@@ -113,8 +113,9 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
       lineLength -= 1;
     }
 
-    for (token = tokens; token < &(tokens[MAX_TOKENS]) &&
-                         ((*token) = strsep(&line, " \t")) != NULL;) {
+    for (token = tokens;
+         (token < (tokens + MAX_TOKENS)) &&
+         (((*token) = strsep(&line, " \t")) != NULL);) {
       if ((**token) != '\0') {
         token++;
       }
