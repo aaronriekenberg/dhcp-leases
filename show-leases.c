@@ -186,6 +186,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
                (strcmp(tokens[1], "ethernet") == 0) &&
                (strlen(tokens[2]) == 18)) {
         tokens[2][17] = '\0';
+        free(currentDhcpdLease->mac);
         currentDhcpdLease->mac = strdup(tokens[2]);
       }
 
@@ -195,6 +196,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
         if (hostnameLength > 3) {
           tokens[1][hostnameLength - 1] = '\0';
           tokens[1][hostnameLength - 2] = '\0';
+          free(currentDhcpdLease->hostname);
           currentDhcpdLease->hostname = strdup(&(tokens[1][1]));
         }
       }
