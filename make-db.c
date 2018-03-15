@@ -87,8 +87,11 @@ static void readOuiFile(DB* db) {
 }
 
 int main(int argc, char** argv) {
+  extern char *malloc_options;
   const char* dbFileName = "oui.db";
   DB* db;
+
+  malloc_options = "X";
 
   if (pledge("stdio flock cpath rpath wpath", NULL) == -1) {
     printf("pledge error %d: %s\n", errno, strerror(errno));

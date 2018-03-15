@@ -50,31 +50,6 @@ RBT_HEAD(DhcpdLeaseTree, DhcpdLease);
 RBT_PROTOTYPE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease);
 RBT_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease);
 
-static void* checkedCallocOne(
-  const size_t size)
-{
-  void* retVal = calloc(1, size);
-  if (retVal == NULL)
-  {
-    printf("calloc failed nmemb %u size %zu\n",
-           1, size);
-    abort();
-  }
-  return retVal;
-}
-
-static void* checkedMalloc(
-  const size_t size)
-{
-  void* retVal = malloc(size);
-  if (retVal == NULL)
-  {
-    printf("malloc failed size %zu\n", size);
-    abort();
-  }
-  return retVal;
-}
-
 static const size_t MAX_TOKENS = 4;
 
 struct DhcpdLeaseTree* readDhcpdLeasesFile() {
@@ -87,7 +62,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   ssize_t lineLength;
   int error;
 
-  dhcpdLeaseTree = checkedMalloc(sizeof(struct DhcpdLeaseTree));
+  dhcpdLeaseTree = malloc(sizeof(struct DhcpdLeaseTree));
   RBT_INIT(DhcpdLeaseTree, dhcpdLeaseTree);
 
   printf("reading %s\n", fileName);
@@ -134,7 +109,7 @@ struct DhcpdLeaseTree* readDhcpdLeasesFile() {
       if ((numTokens >= 2) &&
           (strcmp(tokens[0], "lease") == 0) &&
           (strcmp(tokens[2], "{") == 0)) {
-        currentDhcpdLease = checkedCallocOne(sizeof(struct DhcpdLease));
+        currentDhcpdLease = calloc(1, sizeof(struct DhcpdLease));
         currentDhcpdLease->ip = inet_addr(tokens[1]);
       }
 
@@ -246,6 +221,7 @@ static const char* getDhcpdLeaseState(
 }
 
 int main(int argc, char** argv) {
+  extern char *malloc_options;
   const char* dbFileName = "oui.db";
   DB* db;
   struct DhcpdLeaseTree* dhcpdLeaseTree;
@@ -253,6 +229,8 @@ int main(int argc, char** argv) {
   time_t now;
   size_t numLeases = 0;
   int i;
+
+  malloc_options = "X";
 
   if (pledge("stdio flock rpath", NULL) == -1) {
     printf("pledge error %d: %s\n", errno, strerror(errno));
