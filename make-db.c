@@ -87,7 +87,7 @@ static void readOuiFile(DB* db) {
 }
 
 int main(int argc, char** argv) {
-  extern char *malloc_options;
+  extern char* malloc_options;
   const char* dbFileName = "oui.db";
   DB* db;
 
