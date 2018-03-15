@@ -52,7 +52,7 @@ RBT_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease);
 
 static const size_t MAX_TOKENS = 4;
 
-struct DhcpdLeaseTree* readDhcpdLeasesFile() {
+static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   const char* fileName = "/var/db/dhcpd.leases";
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* currentDhcpdLease = NULL;
