@@ -86,12 +86,16 @@ static void readOuiFile(DB* db) {
   printf("totalRecords = %zu recordsWritten = %zu\n", totalRecords, recordsWritten);
 }
 
-int main(int argc, char** argv) {
+static void setMallocOptions() {
   extern char* malloc_options;
+  malloc_options = "X";
+}
+
+int main(int argc, char** argv) {
   const char* dbFileName = "oui.db";
   DB* db;
 
-  malloc_options = "X";
+  setMallocOptions();
 
   if (pledge("stdio flock cpath rpath wpath", NULL) == -1) {
     printf("pledge error %d: %s\n", errno, strerror(errno));

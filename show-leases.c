@@ -220,8 +220,12 @@ static const char* getDhcpdLeaseState(
   }
 }
 
-int main(int argc, char** argv) {
+static void setMallocOptions() {
   extern char* malloc_options;
+  malloc_options = "X";
+}
+
+int main(int argc, char** argv) {
   const char* dbFileName = "oui.db";
   DB* db;
   struct DhcpdLeaseTree* dhcpdLeaseTree;
@@ -230,7 +234,7 @@ int main(int argc, char** argv) {
   size_t numLeases = 0;
   int i;
 
-  malloc_options = "X";
+  setMallocOptions();
 
   if (pledge("stdio flock rpath", NULL) == -1) {
     printf("pledge error %d: %s\n", errno, strerror(errno));
