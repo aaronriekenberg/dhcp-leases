@@ -36,7 +36,7 @@ static void readOuiFile(DB* db) {
            ((line[lineLength - 1] == '\r') ||
             (line[lineLength - 1] == '\n'))) {
       line[lineLength - 1] = '\0';
-      lineLength -= 1;
+      --lineLength;
     }
 
     if ((lineLength < 23) ||
@@ -52,7 +52,7 @@ static void readOuiFile(DB* db) {
     line[6] = '\0';
     if (sscanf(line, "%x", &oui) == 1) {
       DBT key, value;
-      char* organization = &(line[22]);
+      char* organization = line + 22;
 
       key.data = &oui;
       key.size = sizeof(oui);

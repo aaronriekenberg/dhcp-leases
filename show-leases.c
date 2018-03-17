@@ -85,14 +85,14 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
            ((line[lineLength - 1] == '\r') ||
             (line[lineLength - 1] == '\n'))) {
       line[lineLength - 1] = '\0';
-      lineLength -= 1;
+      --lineLength;
     }
 
     for (token = tokens;
          (token < (tokens + MAX_TOKENS)) &&
          (((*token) = strsep(&line, " \t")) != NULL);) {
       if ((**token) != '\0') {
-        token++;
+        ++token;
       }
     }
     (*token) = NULL;
@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* dhcpdLease;
   time_t now;
-  size_t numLeases = 0;
+  size_t numLeases;
   int i;
 
   setMallocOptions();
@@ -259,11 +259,12 @@ int main(int argc, char** argv) {
   }
   putchar('\n');
 
+  numLeases = 0;
   RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
     struct tm* tm;
     char timeBuffer[80];
-    const char* organization = NULL;
+    const char* organization;
 
     ++numLeases;
 
@@ -292,6 +293,7 @@ int main(int argc, char** argv) {
       printf("%-24s", "NA");
     }
 
+    organization = NULL;
     if (dhcpdLease->mac != NULL) {
       uint8_t byte1, byte2, byte3;
       if (sscanf(dhcpdLease->mac, "%hhx:%hhx:%hhx", &byte1, &byte2, &byte3) == 3) {
