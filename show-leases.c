@@ -198,10 +198,8 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   free(line);
   line = NULL;
 
-  if (currentDhcpdLease != NULL) {
-    freeDhcpdLease(currentDhcpdLease);
-    currentDhcpdLease = NULL;
-  }
+  freeDhcpdLease(currentDhcpdLease);
+  currentDhcpdLease = NULL;
 
   return dhcpdLeaseTree;
 }
