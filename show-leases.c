@@ -120,13 +120,13 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
       if ((numTokens >= 1) &&
           (strcmp(tokens[0], "}") == 0)) {
-        struct DhcpdLease* tmpDhcpdLease =
+        struct DhcpdLease* otherLeaseForIP =
           RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
-        if (tmpDhcpdLease != NULL) {
-          if (currentDhcpdLease->endTime >= tmpDhcpdLease->endTime) {
-            RBT_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, tmpDhcpdLease);
-            freeDhcpdLease(tmpDhcpdLease);
-            tmpDhcpdLease = NULL;
+        if (otherLeaseForIP != NULL) {
+          if (currentDhcpdLease->endTime >= otherLeaseForIP->endTime) {
+            RBT_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, otherLeaseForIP);
+            freeDhcpdLease(otherLeaseForIP);
+            otherLeaseForIP = NULL;
             RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
           } else {
             freeDhcpdLease(currentDhcpdLease);
