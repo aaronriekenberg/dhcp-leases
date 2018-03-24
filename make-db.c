@@ -75,13 +75,13 @@ static void readOuiFile(DB* db) {
            fileName, error, strerror(error));
   }
 
-  free(line);
-  line = NULL;
-
   if ((error = fclose(ouiFile)) != 0) {
     printf("error closing oui file %s errno %d: %s", 
            fileName, error, strerror(error));
   }
+
+  free(line);
+  line = NULL;
 
   printf("totalRecords = %zu recordsWritten = %zu\n", totalRecords, recordsWritten);
 }

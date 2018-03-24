@@ -190,13 +190,13 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
            fileName, error, strerror(error));
   }
 
-  free(line);
-  line = NULL;
-
   if ((error = fclose(dhcpdLeasesFile)) != 0) {
     printf("error closing dhcpd leases file %s errno %d: %s", 
            fileName, error, strerror(error));
   }
+
+  free(line);
+  line = NULL;
 
   if (currentDhcpdLease != NULL) {
     freeDhcpdLease(currentDhcpdLease);
