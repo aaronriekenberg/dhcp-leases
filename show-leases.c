@@ -107,7 +107,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
     if (currentDhcpdLease == NULL) {
 
-      if ((numTokens >= 2) &&
+      if ((numTokens >= 3) &&
           (strcmp(tokens[0], "lease") == 0) &&
           (strcmp(tokens[2], "{") == 0)) {
         currentDhcpdLease = calloc(1, sizeof(struct DhcpdLease));
