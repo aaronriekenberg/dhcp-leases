@@ -208,13 +208,13 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
 
 static const char* getDhcpdLeaseState(
   const struct DhcpdLease* dhcpdLease,
-  const time_t* now) {
+  const time_t now) {
   if (dhcpdLease->abandoned) {
     return "Abandoned";
-  } else if ((*now) < (dhcpdLease->startTime)) {
+  } else if (now < (dhcpdLease->startTime)) {
     return "Future";
-  } else if (((*now) >= (dhcpdLease->startTime)) &&
-             ((dhcpdLease->endTime) >= (*now))) {
+  } else if ((now >= (dhcpdLease->startTime)) &&
+             ((dhcpdLease->endTime) >= now)) {
     return "Current";
   } else {
     return "Past";
@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
     ipAddressAddr.s_addr = dhcpdLease->ip;
     printf("%-18s", inet_ntoa(ipAddressAddr));
 
-    printf("%-11s", getDhcpdLeaseState(dhcpdLease, &now));
+    printf("%-11s", getDhcpdLeaseState(dhcpdLease, now));
 
     if ((dhcpdLease->endTime != 0) &&
         ((tm = localtime(&(dhcpdLease->endTime))) != NULL) &&
