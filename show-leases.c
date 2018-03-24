@@ -211,8 +211,8 @@ static const char* getDhcpdLeaseState(
     return "Abandoned";
   } else if (now < (dhcpdLease->startTime)) {
     return "Future";
-  } else if ((now >= (dhcpdLease->startTime)) &&
-             ((dhcpdLease->endTime) >= now)) {
+  } else if (((dhcpdLease->startTime) <= now) &&
+             (now <= (dhcpdLease->endTime))) {
     return "Current";
   } else {
     return "Past";
