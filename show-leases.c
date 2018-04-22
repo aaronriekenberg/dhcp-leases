@@ -216,7 +216,7 @@ static const char* dhcpdLeaseStateString[] = {
   "Abandoned",
   "Future",
   "Current",
-  "Past",
+  "Past"
 };
 
 static enum DhcpdLeaseState getDhcpdLeaseState(
