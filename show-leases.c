@@ -274,7 +274,7 @@ int main(int argc, char** argv) {
   }
   putchar('\n');
 
-  memset(dhcpdLeaseStateCount, 0, sizeof(size_t) * DHCPD_LEASE_STATE_NUM_STATES);
+  memset(dhcpdLeaseStateCount, 0, sizeof(dhcpdLeaseStateCount));
 
   RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
