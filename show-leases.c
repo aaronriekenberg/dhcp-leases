@@ -204,18 +204,33 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   return dhcpdLeaseTree;
 }
 
-static const char* getDhcpdLeaseState(
+enum DhcpdLeaseState {
+  DHCPD_LEASE_STATE_ABANDONED,
+  DHCPD_LEASE_STATE_FUTURE,
+  DHCPD_LEASE_STATE_CURRENT,
+  DHCPD_LEASE_STATE_PAST,
+  DHCPD_LEASE_STATE_NUM_STATES
+};
+
+static const char* dhcpdLeaseStateString[] = {
+  "Abandoned",
+  "Future",
+  "Current",
+  "Past",
+};
+
+static enum DhcpdLeaseState getDhcpdLeaseState(
   const struct DhcpdLease* dhcpdLease,
   const time_t now) {
   if (dhcpdLease->abandoned) {
-    return "Abandoned";
+    return DHCPD_LEASE_STATE_ABANDONED;
   } else if (now < (dhcpdLease->startTime)) {
-    return "Future";
+    return DHCPD_LEASE_STATE_FUTURE;
   } else if (((dhcpdLease->startTime) <= now) &&
              (now <= (dhcpdLease->endTime))) {
-    return "Current";
+    return DHCPD_LEASE_STATE_CURRENT;
   } else {
-    return "Past";
+    return DHCPD_LEASE_STATE_PAST;
   }
 }
 
@@ -230,7 +245,8 @@ int main(int argc, char** argv) {
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* dhcpdLease;
   time_t now;
-  size_t numLeases;
+  size_t dhcpdLeaseStateCount[DHCPD_LEASE_STATE_NUM_STATES];
+  size_t totalLeases;
   int i;
 
   setMallocOptions();
@@ -258,19 +274,21 @@ int main(int argc, char** argv) {
   }
   putchar('\n');
 
-  numLeases = 0;
+  memset(dhcpdLeaseStateCount, 0, sizeof(size_t) * DHCPD_LEASE_STATE_NUM_STATES);
+
   RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
     struct in_addr ipAddressAddr;
+    enum DhcpdLeaseState dhcpdLeaseState;
     struct tm* tm;
     char timeBuffer[80];
     const char* organization;
 
-    ++numLeases;
-
     ipAddressAddr.s_addr = dhcpdLease->ip;
     printf("%-18s", inet_ntoa(ipAddressAddr));
 
-    printf("%-11s", getDhcpdLeaseState(dhcpdLease, now));
+    dhcpdLeaseState = getDhcpdLeaseState(dhcpdLease, now);
+    ++(dhcpdLeaseStateCount[dhcpdLeaseState]);
+    printf("%-11s", dhcpdLeaseStateString[dhcpdLeaseState]);
 
     if ((dhcpdLease->endTime != 0) &&
         ((tm = localtime(&(dhcpdLease->endTime))) != NULL) &&
@@ -314,7 +332,15 @@ int main(int argc, char** argv) {
     putchar('\n');
   }
 
-  printf("\n%zu IPs in use\n", numLeases);
+  totalLeases = 0;
+  for (i = 0; i < DHCPD_LEASE_STATE_NUM_STATES; ++i) {
+    totalLeases += dhcpdLeaseStateCount[i];
+  }
+
+  printf("\n%zu IPs in use:\n", totalLeases);
+  for (i = 0; i < DHCPD_LEASE_STATE_NUM_STATES; ++i) {
+    printf("\t%zu %s\n", dhcpdLeaseStateCount[i], dhcpdLeaseStateString[i]);
+  }
 
   if (db->close(db) != 0) {
     printf("db->close error errno %d: %s\n", errno, strerror(errno));
