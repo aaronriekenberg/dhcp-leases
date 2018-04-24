@@ -245,8 +245,8 @@ int main(int argc, char** argv) {
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* dhcpdLease;
   time_t now;
-  size_t dhcpdLeaseStateCount[DHCPD_LEASE_STATE_NUM_STATES];
   size_t totalLeases;
+  size_t dhcpdLeaseStateCount[DHCPD_LEASE_STATE_NUM_STATES];
   int i;
 
   setMallocOptions();
@@ -274,6 +274,7 @@ int main(int argc, char** argv) {
   }
   putchar('\n');
 
+  totalLeases = 0;
   memset(dhcpdLeaseStateCount, 0, sizeof(dhcpdLeaseStateCount));
 
   RBT_FOREACH(dhcpdLease, DhcpdLeaseTree, dhcpdLeaseTree) {
@@ -282,6 +283,8 @@ int main(int argc, char** argv) {
     struct tm* tm;
     char timeBuffer[80];
     const char* organization;
+
+    ++totalLeases;
 
     ipAddressAddr.s_addr = dhcpdLease->ip;
     printf("%-18s", inet_ntoa(ipAddressAddr));
@@ -332,12 +335,7 @@ int main(int argc, char** argv) {
     putchar('\n');
   }
 
-  totalLeases = 0;
-  for (i = 0; i < DHCPD_LEASE_STATE_NUM_STATES; ++i) {
-    totalLeases += dhcpdLeaseStateCount[i];
-  }
-
-  printf("\n%zu IPs in use:\n", totalLeases);
+  printf("\n%zu leases with unique IPs:\n", totalLeases);
   for (i = 0; i < DHCPD_LEASE_STATE_NUM_STATES; ++i) {
     printf("\t%zu %s\n", dhcpdLeaseStateCount[i], dhcpdLeaseStateString[i]);
   }
