@@ -96,7 +96,6 @@ int main(int argc, char** argv) {
 
   if (pledge("stdio flock cpath rpath wpath", NULL) == -1) {
     err(1, "pledge");
-    return 1;
   }
 
   printf("dbFileName = %s\n", dbFileName);
