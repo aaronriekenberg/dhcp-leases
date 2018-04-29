@@ -1,7 +1,7 @@
 #include "oui.h"
 #include <ctype.h>
 #include <db.h>
-#include <errno.h>
+#include <err.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -23,8 +23,7 @@ static void readOuiFile(DB* db) {
   ouiFile = fopen(fileName, "r");
 
   if (ouiFile == NULL) {
-    printf("failed to open %s errno %d: %s", 
-           fileName, errno, strerror(errno));
+    err(1, "open %s", fileName);
     return;
   }
 
@@ -63,7 +62,7 @@ static void readOuiFile(DB* db) {
       ++totalRecords;
 
       if (db->put(db, &key, &value, 0) != 0) {
-        printf("db->put error errno %d: %s\n", errno, strerror(errno));
+        warn("db->put");
       } else {
         ++recordsWritten;
       }
@@ -71,13 +70,11 @@ static void readOuiFile(DB* db) {
   }
 
   if ((error = ferror(ouiFile)) != 0) {
-    printf("error reading oui file %s errno %d: %s", 
-           fileName, error, strerror(error));
+    warn("ferror %s", fileName);
   }
 
   if ((error = fclose(ouiFile)) != 0) {
-    printf("error closing oui file %s errno %d: %s", 
-           fileName, error, strerror(error));
+    warn("fclose %s", fileName);
   }
 
   free(line);
@@ -98,7 +95,7 @@ int main(int argc, char** argv) {
   setMallocOptions();
 
   if (pledge("stdio flock cpath rpath wpath", NULL) == -1) {
-    printf("pledge error %d: %s\n", errno, strerror(errno));
+    err(1, "pledge");
     return 1;
   }
 
@@ -106,14 +103,13 @@ int main(int argc, char** argv) {
 
   db = dbopen(dbFileName, O_CREAT|O_TRUNC|O_EXLOCK|O_RDWR, 0600, DB_BTREE, NULL);
   if (db == NULL) {
-    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, strerror(errno));
-    return 1;
+    err(1, "dbopen %s", dbFileName);
   }
 
   readOuiFile(db);
 
   if (db->close(db) != 0) {
-    printf("db->close error errno %d: %s\n", errno, strerror(errno));
+    warn("db->close");
   }
 
   return 0;

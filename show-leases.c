@@ -1,7 +1,7 @@
 #include "oui.h"
 #include <arpa/inet.h>
 #include <db.h>
-#include <errno.h>
+#include <err.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -69,8 +69,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   dhcpdLeasesFile = fopen(fileName, "r");
 
   if (dhcpdLeasesFile == NULL) {
-    printf("failed to open %s errno %d: %s", 
-           fileName, errno, strerror(errno));
+    warn("open %s", fileName);
     return dhcpdLeaseTree;
   }
 
@@ -186,13 +185,11 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
   }
 
   if ((error = ferror(dhcpdLeasesFile)) != 0) {
-    printf("error reading dhcpd leases file %s errno %d: %s", 
-           fileName, error, strerror(error));
+    warn("ferror %s", fileName);
   }
 
   if ((error = fclose(dhcpdLeasesFile)) != 0) {
-    printf("error closing dhcpd leases file %s errno %d: %s", 
-           fileName, error, strerror(error));
+    warn("fclose %s", fileName);
   }
 
   free(line);
@@ -252,14 +249,12 @@ int main(int argc, char** argv) {
   setMallocOptions();
 
   if (pledge("stdio flock rpath", NULL) == -1) {
-    printf("pledge error %d: %s\n", errno, strerror(errno));
-    return 1;
+    err(1, "pledge");
   }
 
   db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
   if (db == NULL) {
-    printf("dbopen error %s errno %d: %s\n", dbFileName, errno, strerror(errno));
-    return 1;
+    err(1, "dbopen %s", dbFileName);
   }
 
   printf("dbFileName = %s\n", dbFileName);
@@ -341,7 +336,7 @@ int main(int argc, char** argv) {
   }
 
   if (db->close(db) != 0) {
-    printf("db->close error errno %d: %s\n", errno, strerror(errno));
+    warn("db->close");
   }
 
   return 0;
