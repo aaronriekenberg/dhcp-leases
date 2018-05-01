@@ -24,7 +24,6 @@ static void readOuiFile(DB* db) {
 
   if (ouiFile == NULL) {
     err(1, "open %s", fileName);
-    return;
   }
 
   while ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1) {
