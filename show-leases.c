@@ -34,8 +34,8 @@ static void freeDhcpdLease(
   }
 }
 
-static void copyDhcpdLease(
-  const struct DhcpdLease* from,
+static void moveDhcpdLease(
+  struct DhcpdLease* from,
   struct DhcpdLease* to) {
   to->ip = from->ip;
   to->numRecords = from->numRecords;
@@ -43,16 +43,12 @@ static void copyDhcpdLease(
   to->endTime = from->endTime;
 
   free(to->mac);
-  to->mac = NULL;
-  if (from->mac != NULL) {
-    to->mac = strdup(from->mac);
-  }
+  to->mac = from->mac;
+  from->mac = NULL;
 
   free(to->hostname);
-  to->hostname = NULL;
-  if (from->hostname != NULL) {
-    to->hostname = strdup(from->hostname);
-  }
+  to->hostname = from->hostname;
+  from->hostname = NULL;
 
   to->abandoned = from->abandoned;
 }
@@ -150,7 +146,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
           const uint32_t totalNumRecords =
             currentDhcpdLease->numRecords + otherLeaseForIP->numRecords;
           if (currentDhcpdLease->endTime >= otherLeaseForIP->endTime) {
-            copyDhcpdLease(currentDhcpdLease, otherLeaseForIP);
+            moveDhcpdLease(currentDhcpdLease, otherLeaseForIP);
           }
           otherLeaseForIP->numRecords = totalNumRecords;
           freeDhcpdLease(currentDhcpdLease);
