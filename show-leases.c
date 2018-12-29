@@ -16,6 +16,7 @@
 
 struct DhcpdLease {
   in_addr_t ip;
+  uint32_t numRecords;
   time_t startTime;
   time_t endTime;
   char* mac;
@@ -111,6 +112,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
           (strcmp(tokens[2], "{") == 0)) {
         currentDhcpdLease = calloc(1, sizeof(struct DhcpdLease));
         currentDhcpdLease->ip = inet_addr(tokens[1]);
+        currentDhcpdLease->numRecords = 1;
       }
 
     } 
@@ -123,11 +125,13 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
           RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
         if (otherLeaseForIP != NULL) {
           if (currentDhcpdLease->endTime >= otherLeaseForIP->endTime) {
+            currentDhcpdLease->numRecords += otherLeaseForIP->numRecords;
             RBT_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, otherLeaseForIP);
             freeDhcpdLease(otherLeaseForIP);
             otherLeaseForIP = NULL;
             RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
           } else {
+            otherLeaseForIP->numRecords += currentDhcpdLease->numRecords;
             freeDhcpdLease(currentDhcpdLease);
           }
         }
@@ -263,8 +267,8 @@ int main(int argc, char** argv) {
 
   now = time(NULL);
 
-  printf("\n%-18s%-11s%-28s%-20s%-24s%s\n", "IP", "State", "End Time", "MAC", "Hostname", "Organization");
-  for (i = 0; i < 128; ++i) {
+  printf("\n%-18s%-11s%-6s%-28s%-20s%-24s%s\n", "IP", "State", "Num", "End Time", "MAC", "Hostname", "Organization");
+  for (i = 0; i < 140; ++i) {
     putchar('=');
   }
   putchar('\n');
@@ -287,6 +291,8 @@ int main(int argc, char** argv) {
     dhcpdLeaseState = getDhcpdLeaseState(dhcpdLease, now);
     ++(dhcpdLeaseStateCount[dhcpdLeaseState]);
     printf("%-11s", dhcpdLeaseStateString[dhcpdLeaseState]);
+
+    printf("%-6u", dhcpdLease->numRecords);
 
     if ((dhcpdLease->endTime != 0) &&
         ((tm = localtime(&(dhcpdLease->endTime))) != NULL) &&
