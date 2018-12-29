@@ -34,6 +34,29 @@ static void freeDhcpdLease(
   }
 }
 
+static void copyDhcpdLease(
+  const struct DhcpdLease* from,
+  struct DhcpdLease* to) {
+  to->ip = from->ip;
+  to->numRecords = from->numRecords;
+  to->startTime = from->startTime;
+  to->endTime = from->endTime;
+
+  free(to->mac);
+  to->mac = NULL;
+  if (from->mac != NULL) {
+    to->mac = strdup(from->mac);
+  }
+
+  free(to->hostname);
+  to->hostname = NULL;
+  if (from->hostname != NULL) {
+    to->hostname = strdup(from->hostname);
+  }
+
+  to->abandoned = from->abandoned;
+}
+
 static inline int compareDhcpdLease(
   const struct DhcpdLease* d1,
   const struct DhcpdLease* d2) {
@@ -127,15 +150,10 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
           const uint32_t totalNumRecords =
             currentDhcpdLease->numRecords + otherLeaseForIP->numRecords;
           if (currentDhcpdLease->endTime >= otherLeaseForIP->endTime) {
-            currentDhcpdLease->numRecords = totalNumRecords;
-            RBT_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, otherLeaseForIP);
-            freeDhcpdLease(otherLeaseForIP);
-            otherLeaseForIP = NULL;
-            RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
-          } else {
-            otherLeaseForIP->numRecords = totalNumRecords;
-            freeDhcpdLease(currentDhcpdLease);
+            copyDhcpdLease(currentDhcpdLease, otherLeaseForIP);
           }
+          otherLeaseForIP->numRecords = totalNumRecords;
+          freeDhcpdLease(currentDhcpdLease);
         }
         currentDhcpdLease = NULL;
       }
