@@ -124,14 +124,16 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
         struct DhcpdLease* otherLeaseForIP =
           RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
         if (otherLeaseForIP != NULL) {
+          const uint32_t totalNumRecords =
+            currentDhcpdLease->numRecords + otherLeaseForIP->numRecords;
           if (currentDhcpdLease->endTime >= otherLeaseForIP->endTime) {
-            currentDhcpdLease->numRecords += otherLeaseForIP->numRecords;
+            currentDhcpdLease->numRecords = totalNumRecords;
             RBT_REMOVE(DhcpdLeaseTree, dhcpdLeaseTree, otherLeaseForIP);
             freeDhcpdLease(otherLeaseForIP);
             otherLeaseForIP = NULL;
             RBT_INSERT(DhcpdLeaseTree, dhcpdLeaseTree, currentDhcpdLease);
           } else {
-            otherLeaseForIP->numRecords += currentDhcpdLease->numRecords;
+            otherLeaseForIP->numRecords = totalNumRecords;
             freeDhcpdLease(currentDhcpdLease);
           }
         }
