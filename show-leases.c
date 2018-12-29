@@ -235,35 +235,12 @@ static enum DhcpdLeaseState getDhcpdLeaseState(
   }
 }
 
-static void setMallocOptions() {
-  extern char* malloc_options;
-  malloc_options = "X";
-}
-
-int main(int argc, char** argv) {
-  const char* dbFileName = "oui.db";
-  DB* db;
-  struct DhcpdLeaseTree* dhcpdLeaseTree;
+static void printLeases(struct DhcpdLeaseTree* dhcpdLeaseTree, DB* db) {
   struct DhcpdLease* dhcpdLease;
   time_t now;
   size_t totalLeases;
   size_t dhcpdLeaseStateCount[DHCPD_LEASE_STATE_NUM_STATES];
   int i;
-
-  setMallocOptions();
-
-  if (pledge("stdio flock rpath", NULL) == -1) {
-    err(1, "pledge");
-  }
-
-  db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
-  if (db == NULL) {
-    err(1, "dbopen %s", dbFileName);
-  }
-
-  printf("dbFileName = %s\n", dbFileName);
-
-  dhcpdLeaseTree = readDhcpdLeasesFile();
 
   now = time(NULL);
 
@@ -340,6 +317,34 @@ int main(int argc, char** argv) {
   for (i = 0; i < DHCPD_LEASE_STATE_NUM_STATES; ++i) {
     printf("\t%zu %s\n", dhcpdLeaseStateCount[i], dhcpdLeaseStateString[i]);
   }
+}
+
+static void setMallocOptions() {
+  extern char* malloc_options;
+  malloc_options = "X";
+}
+
+int main(int argc, char** argv) {
+  const char* dbFileName = "oui.db";
+  DB* db;
+  struct DhcpdLeaseTree* dhcpdLeaseTree;
+
+  setMallocOptions();
+
+  if (pledge("stdio flock rpath", NULL) == -1) {
+    err(1, "pledge");
+  }
+
+  db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
+  if (db == NULL) {
+    err(1, "dbopen %s", dbFileName);
+  }
+
+  printf("dbFileName = %s\n", dbFileName);
+
+  dhcpdLeaseTree = readDhcpdLeasesFile();
+
+  printLeases(dhcpdLeaseTree, db);
 
   if (db->close(db) != 0) {
     warn("db->close");
