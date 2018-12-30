@@ -10,8 +10,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static void readOuiFile(DB* db) {
-  const char* fileName = "oui.txt";
+static void readOuiFile(
+  const char* fileName,
+  DB* db) {
   FILE* ouiFile;
   char* line = NULL;
   size_t lineCapacity = 0;
@@ -88,10 +89,19 @@ static void setMallocOptions() {
 }
 
 int main(int argc, char** argv) {
-  const char* dbFileName = "oui.db";
+  const char* dbFileName = "./oui.db";
+  const char* ouiFileName = "./oui.txt";
   DB* db;
 
   setMallocOptions();
+
+  if (unveil(dbFileName, "rwc") == -1) {
+    err(1, "unveil");
+  }
+
+  if (unveil(ouiFileName, "r") == -1) {
+    err(1, "unveil");
+  }
 
   if (pledge("stdio flock cpath rpath wpath", NULL) == -1) {
     err(1, "pledge");
@@ -104,7 +114,7 @@ int main(int argc, char** argv) {
     err(1, "dbopen %s", dbFileName);
   }
 
-  readOuiFile(db);
+  readOuiFile(ouiFileName, db);
 
   if (db->close(db) != 0) {
     warn("db->close");

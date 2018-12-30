@@ -72,8 +72,8 @@ RBT_GENERATE(DhcpdLeaseTree, DhcpdLease, entry, compareDhcpdLease);
 
 static const size_t MAX_TOKENS = 4;
 
-static struct DhcpdLeaseTree* readDhcpdLeasesFile() {
-  const char* fileName = "/var/db/dhcpd.leases";
+static struct DhcpdLeaseTree* readDhcpdLeasesFile(
+  const char* fileName) {
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* currentDhcpdLease = NULL;
   FILE* dhcpdLeasesFile;
@@ -341,11 +341,20 @@ static void setMallocOptions() {
 }
 
 int main(int argc, char** argv) {
-  const char* dbFileName = "oui.db";
+  const char* dhcpdLeasesFileName = "/var/db/dhcpd.leases";
+  const char* dbFileName = "./oui.db";
   DB* db;
   struct DhcpdLeaseTree* dhcpdLeaseTree;
 
   setMallocOptions();
+
+  if (unveil(dhcpdLeasesFileName, "r") == -1) {
+    err(1, "unveil");
+  }
+
+  if (unveil(dbFileName, "r") == -1) {
+    err(1, "unveil");
+  }
 
   if (pledge("stdio flock rpath", NULL) == -1) {
     err(1, "pledge");
@@ -358,7 +367,7 @@ int main(int argc, char** argv) {
 
   printf("dbFileName = %s\n", dbFileName);
 
-  dhcpdLeaseTree = readDhcpdLeasesFile();
+  dhcpdLeaseTree = readDhcpdLeasesFile(dhcpdLeasesFileName);
 
   printLeases(dhcpdLeaseTree, db);
 
