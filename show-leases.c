@@ -37,20 +37,11 @@ static void freeDhcpdLease(
 static void moveDhcpdLease(
   struct DhcpdLease* from,
   struct DhcpdLease* to) {
-  to->ip = from->ip;
-  to->numRecords = from->numRecords;
-  to->startTime = from->startTime;
-  to->endTime = from->endTime;
-
   free(to->mac);
-  to->mac = from->mac;
-  from->mac = NULL;
-
   free(to->hostname);
-  to->hostname = from->hostname;
-  from->hostname = NULL;
 
-  to->abandoned = from->abandoned;
+  memcpy(to, from, offsetof(struct DhcpdLease, entry));
+  memset(from, 0, offsetof(struct DhcpdLease, entry));
 }
 
 static inline int compareDhcpdLease(
