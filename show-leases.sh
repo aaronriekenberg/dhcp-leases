@@ -10,4 +10,5 @@ if [ ! -f ./oui.db ]; then
   ./make-db
 fi
 
+echo "Now: $(date)"
 ./show-leases
