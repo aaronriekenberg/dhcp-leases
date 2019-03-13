@@ -68,6 +68,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile(
   struct DhcpdLeaseTree* dhcpdLeaseTree;
   struct DhcpdLease* currentDhcpdLease = NULL;
   FILE* dhcpdLeasesFile;
+  size_t numLines = 0, numLeases = 0;
   char* line = NULL;
   size_t lineCapacity = 0;
   ssize_t lineLength;
@@ -89,6 +90,8 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile(
     char** token;
     char* tokens[MAX_TOKENS + 1];
     size_t numTokens;
+
+    ++numLines;
 
     /* kill \r and \n */
     while ((lineLength >= 1) &&
@@ -143,6 +146,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile(
           freeDhcpdLease(currentDhcpdLease);
         }
         currentDhcpdLease = NULL;
+        ++numLeases;
       }
 
       else if ((numTokens >= 4) &&
@@ -208,6 +212,8 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile(
 
   freeDhcpdLease(currentDhcpdLease);
   currentDhcpdLease = NULL;
+
+  printf("read %zu lines %zu leases\n", numLines, numLeases);
 
   return dhcpdLeaseTree;
 }

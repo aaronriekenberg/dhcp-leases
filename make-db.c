@@ -18,7 +18,7 @@ static void readOuiFile(
   size_t lineCapacity = 0;
   ssize_t lineLength;
   int error;
-  size_t totalRecords = 0, recordsWritten = 0;
+  size_t numLines = 0, totalRecords = 0, recordsWritten = 0;
 
   printf("reading %s\n", fileName);
   ouiFile = fopen(fileName, "r");
@@ -29,6 +29,8 @@ static void readOuiFile(
 
   while ((lineLength = getline(&line, &lineCapacity, ouiFile)) != -1) {
     Oui oui;
+
+    ++numLines;
 
     /* kill \r and \n */
     while ((lineLength >= 1) &&
@@ -80,7 +82,7 @@ static void readOuiFile(
   free(line);
   line = NULL;
 
-  printf("totalRecords = %zu recordsWritten = %zu\n", totalRecords, recordsWritten);
+  printf("numLines = %zu totalRecords = %zu recordsWritten = %zu\n", numLines, totalRecords, recordsWritten);
 }
 
 static void setMallocOptions() {
