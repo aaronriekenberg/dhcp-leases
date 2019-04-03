@@ -1,0 +1,8 @@
+#!/bin/sh
+
+echo 'Status: 200 OK'
+echo 'Content-Type: text/html'
+echo
+cat ../conf/dhcpd-top.html
+../bin/show-leases-static ../conf/dhcpd.leases ../conf/oui.db
+cat ../conf/dhcpd-bottom.html

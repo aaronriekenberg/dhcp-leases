@@ -3,4 +3,5 @@
 *.o
 make-db
 show-leases
+show-leases-static
 oui.txt

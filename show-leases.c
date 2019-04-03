@@ -338,12 +338,20 @@ static void setMallocOptions() {
 }
 
 int main(int argc, char** argv) {
-  const char* dhcpdLeasesFileName = "/var/db/dhcpd.leases";
-  const char* dbFileName = "./oui.db";
+  char* dhcpdLeasesFileName = "/var/db/dhcpd.leases";
+  char* dbFileName = "./oui.db";
   DB* db;
   struct DhcpdLeaseTree* dhcpdLeaseTree;
 
   setMallocOptions();
+
+  if (argc >= 2) {
+    dhcpdLeasesFileName = argv[1];
+  }
+
+  if (argc >= 3) {
+    dbFileName = argv[2];
+  }
 
   if (unveil(dhcpdLeasesFileName, "r") == -1) {
     err(1, "unveil");

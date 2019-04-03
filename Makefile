@@ -8,16 +8,19 @@ MAKE_DB_OBJS = $(MAKE_DB_SRC:.c=.o)
 SHOW_LEASES_SRC = show-leases.c
 SHOW_LEASES_OBJS = $(SHOW_LEASES_SRC:.c=.o)
 
-all: make-db show-leases
+all: make-db show-leases show-leases-static
 
 clean:
-	rm -f *.o make-db show-leases
+	rm -f *.o make-db show-leases show-leases-static
 
 make-db: $(MAKE_DB_OBJS)
 	$(CC) $(LDFLAGS) $(MAKE_DB_OBJS) -o $@
 
 show-leases: $(SHOW_LEASES_OBJS)
 	$(CC) $(LDFLAGS) $(SHOW_LEASES_OBJS) -o $@
+
+show-leases-static: $(SHOW_LEASES_OBJS)
+	$(CC) -static $(LDFLAGS) $(SHOW_LEASES_OBJS) -o $@
 
 depend:
 	$(CC) $(CFLAGS) -MM $(MAKE_DB_SRC) $(SHOW_LEASES_SRC) > .makeinclude
