@@ -1,2 +1,0 @@
-# dhcpd-leases
-*       *       *       *       *       cp /var/db/dhcpd.leases /var/www/conf/ && chmod 644 /var/www/conf/dhcpd.leases
