@@ -3,6 +3,6 @@
 builtin echo 'Status: 200 OK'
 builtin echo 'Content-Type: text/html\n'
 
-cat /conf/dhcpd-top.html
+cat /conf/dhcp-top.html
 /bin/show-leases-static /conf/dhcpd.leases /conf/oui.db
-cat /conf/dhcpd-bottom.html
+cat /conf/dhcp-bottom.html
