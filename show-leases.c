@@ -355,7 +355,7 @@ static void printHTMLFooter() {
   puts(
 "  </pre>\n"
 "</body>\n"
-""
+"\n"
 "</html>\n"
   );
 }
