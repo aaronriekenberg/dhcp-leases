@@ -8,10 +8,10 @@ MAKE_DB_OBJS = $(MAKE_DB_SRC:.c=.o)
 SHOW_LEASES_SRC = show-leases.c
 SHOW_LEASES_OBJS = $(SHOW_LEASES_SRC:.c=.o)
 
-all: make-db show-leases show-leases-static
+all: make-db show-leases dhcp-leases
 
 clean:
-	rm -f *.o make-db show-leases show-leases-static
+	rm -f *.o make-db show-leases dhcp-leases
 
 make-db: $(MAKE_DB_OBJS)
 	$(CC) $(LDFLAGS) $(MAKE_DB_OBJS) -o $@
@@ -19,7 +19,7 @@ make-db: $(MAKE_DB_OBJS)
 show-leases: $(SHOW_LEASES_OBJS)
 	$(CC) $(LDFLAGS) $(SHOW_LEASES_OBJS) -o $@
 
-show-leases-static: $(SHOW_LEASES_OBJS)
+dhcp-leases: $(SHOW_LEASES_OBJS)
 	$(CC) -static $(LDFLAGS) $(SHOW_LEASES_OBJS) -o $@
 
 depend:

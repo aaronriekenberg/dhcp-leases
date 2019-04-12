@@ -332,12 +332,41 @@ static void printLeases(struct DhcpdLeaseTree* dhcpdLeaseTree, DB* db) {
   }
 }
 
+static void printHTMLHeader() {
+  puts(
+"Content-Type: text/html\n"
+"\n"
+"<!DOCTYPE html>\n"
+"<html>\n"
+"\n"
+"<head>\n"
+"  <title>DHCP Leases</title>\n"
+"  <meta name=\"viewport\" content=\"width=device, initial-scale=1\" />\n"
+"  <link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n"
+"</head>\n"
+"\n"
+"<body>\n"
+"  <h2>DHCP Leases</h2>\n"
+"  <pre>\n"
+  );
+}
+
+static void printHTMLFooter() {
+  puts(
+"  </pre>\n"
+"</body>\n"
+""
+"</html>\n"
+  );
+}
+
 static void setMallocOptions() {
   extern char* malloc_options;
   malloc_options = "X";
 }
 
 int main(int argc, char** argv) {
+  bool generateHTML = false;
   char* dhcpdLeasesFileName = "/var/db/dhcpd.leases";
   char* dbFileName = "./oui.db";
   DB* db;
@@ -345,12 +374,10 @@ int main(int argc, char** argv) {
 
   setMallocOptions();
 
-  if (argc >= 2) {
-    dhcpdLeasesFileName = argv[1];
-  }
-
-  if (argc >= 3) {
-    dbFileName = argv[2];
+  if (strcmp(getprogname(), "dhcp-leases") == 0) {
+    generateHTML = true;
+    dhcpdLeasesFileName = "/conf/dhcpd.leases";
+    dbFileName = "/conf/oui.db";
   }
 
   if (unveil(dhcpdLeasesFileName, "r") == -1) {
@@ -363,6 +390,10 @@ int main(int argc, char** argv) {
 
   if (pledge("stdio flock rpath", NULL) == -1) {
     err(1, "pledge");
+  }
+
+  if (generateHTML) {
+    printHTMLHeader();
   }
 
   db = dbopen(dbFileName, O_SHLOCK|O_RDONLY, 0600, DB_BTREE, NULL);
@@ -378,6 +409,10 @@ int main(int argc, char** argv) {
 
   if (db->close(db) != 0) {
     warn("db->close");
+  }
+
+  if (generateHTML) {
+    printHTMLFooter();
   }
 
   return 0;

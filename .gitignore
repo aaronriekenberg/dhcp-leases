@@ -2,6 +2,7 @@
 *.swp
 *.o
 make-db
+dhcp-leases
 show-leases
 show-leases-static
 oui.txt
