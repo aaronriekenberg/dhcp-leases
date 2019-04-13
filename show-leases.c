@@ -334,29 +334,29 @@ static void printLeases(struct DhcpdLeaseTree* dhcpdLeaseTree, DB* db) {
 
 static void printHTMLHeader() {
   puts(
-"Content-Type: text/html\n"
-"\n"
-"<!DOCTYPE html>\n"
-"<html>\n"
-"\n"
-"<head>\n"
-"  <title>DHCP Leases</title>\n"
-"  <meta name=\"viewport\" content=\"width=device, initial-scale=1\" />\n"
-"  <link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n"
-"</head>\n"
-"\n"
-"<body>\n"
-"  <h2>DHCP Leases</h2>\n"
-"  <pre>\n"
+    "Content-Type: text/html\n"
+    "\n"
+    "<!DOCTYPE html>\n"
+    "<html>\n"
+    "\n"
+    "<head>\n"
+    "  <title>DHCP Leases</title>\n"
+    "  <meta name=\"viewport\" content=\"width=device, initial-scale=1\" />\n"
+    "  <link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n"
+    "</head>\n"
+    "\n"
+    "<body>\n"
+    "  <h2>DHCP Leases</h2>\n"
+    "  <pre>\n"
   );
 }
 
 static void printHTMLFooter() {
   puts(
-"  </pre>\n"
-"</body>\n"
-"\n"
-"</html>\n"
+    "  </pre>\n"
+    "</body>\n"
+    "\n"
+    "</html>\n"
   );
 }
 
