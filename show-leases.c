@@ -340,7 +340,7 @@ static void printHTMLHeader() {
     "\n"
     "<body>\n"
     "  <h2>DHCP Leases</h2>\n"
-    "  <pre>\n"
+    "  <pre>"
   );
 }
 
@@ -349,7 +349,7 @@ static void printHTMLFooter() {
     "  </pre>\n"
     "</body>\n"
     "\n"
-    "</html>\n"
+    "</html>"
   );
 }
 
