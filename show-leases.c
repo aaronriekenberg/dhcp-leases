@@ -86,7 +86,6 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile(
   }
 
   while ((lineLength = getline(&line, &lineCapacity, dhcpdLeasesFile)) != -1) {
-    size_t i;
     char** token;
     char* tokens[MAX_TOKENS + 1];
     size_t numTokens;
@@ -110,13 +109,7 @@ static struct DhcpdLeaseTree* readDhcpdLeasesFile(
     }
     (*token) = NULL;
 
-    numTokens = 0;
-    for (i = 0; i < (MAX_TOKENS + 1); ++i) {
-      if (tokens[i] == NULL) {
-        numTokens = i;
-        break;
-      }
-    }
+    numTokens = token - tokens;
 
     if (currentDhcpdLease == NULL) {
 
